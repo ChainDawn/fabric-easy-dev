@@ -1,0 +1,41 @@
+Organizations:
+  - &Org1
+    Name: Org1
+    MSPID: Org1MSP
+    Domain: org1.fnodocker.icu
+    Nodes:
+      - &peer0
+        Name: peer0
+      - &peer1
+        Name: peer1
+      - &orderer0
+        - Name: orderer0
+      - &orderer1
+        - Name: orderer1
+  - &Org2
+    Name: Org2
+    MSPID: Org2MSP
+    Domain: org2.fnodocker.icu
+    Nodes:
+      - &peera
+        Name: peera
+      - &peerb
+        Name: peerb
+      - &orderera
+        Name: orderera
+      - &ordererb
+        Name: ordererb
+
+SystemChannel:
+  Name: sys-channel-nodocker
+  Organizations:
+    - *Org1
+    - *Org2
+  Orderers:
+    - *orderer0
+    - *orderer1
+    - *orderera
+    - *ordererb
+
+UserChannels:
+  Name: mychannel
