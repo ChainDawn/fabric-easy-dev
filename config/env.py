@@ -25,4 +25,6 @@ FABRIC_VERSION = "2.2.0"
 TARGET_DIR = os.path.join(PROJECT_HOME, "target")
 CACHE_DIR = os.path.join(TARGET_DIR, "cache")
 
-FABRIC_BIN_DIR = os.path.join(TARGET_DIR, "fabric-%s-v%s" % (PLATFORM, FABRIC_VERSION))
+FABRIC_BIN_DIR = os.path.join(TARGET_DIR, "fabric-%s-v%s" % (PLATFORM, FABRIC_VERSION), "bin")
+
+CRYPTOGEN = os.path.join(FABRIC_BIN_DIR, "cryptogen")
