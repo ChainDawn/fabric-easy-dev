@@ -19,11 +19,10 @@
 import os
 import subprocess
 
-FABRIC_VERSION = "2.2.0"
-PLATFORM = "darwin"
+from config import PLATFORM, FABRIC_VERSION, CACHE_DIR, FABRIC_BIN_DIR
 
 
-def wget(source_url, cache_dir="."):
+def wget(source_url, cache_dir=CACHE_DIR):
     target_file = "%s/%s" % (cache_dir, os.path.basename(source_url))
     if os.path.exists(target_file):
         print("Target file already downloaded: %s" % target_file)
@@ -34,7 +33,7 @@ def wget(source_url, cache_dir="."):
     return None
 
 
-def download_fabric_release_binaries(cache_dir=".", target_dir="binaries/fabric/%s" % FABRIC_VERSION):
+def download_fabric_release_binaries(cache_dir=CACHE_DIR, target_dir=FABRIC_BIN_DIR):
     arch = PLATFORM + "-amd64"
     source_file = "hyperledger-fabric-%s-%s.tar.gz" % (arch, FABRIC_VERSION)
     download_url = "https://github.com/hyperledger/fabric/releases/download/v%s/%s" % (FABRIC_VERSION, source_file)
@@ -51,7 +50,7 @@ def download_fabric_release_binaries(cache_dir=".", target_dir="binaries/fabric/
 def setup():
     if subprocess.call(["pip", "install", "-r", "requirements.txt"]) != 0:
         return
-    download_fabric_release_binaries(cache_dir="cache")
+    download_fabric_release_binaries()
 
 
 if __name__ == '__main__':
