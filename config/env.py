@@ -14,3 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import os
+import platform
+
+PLATFORM = str(platform.system()).lower()
+
+PROJECT_HOME = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+FABRIC_VERSION = "2.2.0"
+
+TARGET_DIR = os.path.join(PROJECT_HOME, "target")
+CACHE_DIR = os.path.join(TARGET_DIR, "cache")
+
+FABRIC_BIN_DIR = os.path.join(TARGET_DIR, "fabric-%s-v%s" % (PLATFORM, FABRIC_VERSION))

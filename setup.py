@@ -19,7 +19,7 @@
 import os
 import subprocess
 
-from config import PLATFORM, FABRIC_VERSION, CACHE_DIR, FABRIC_BIN_DIR
+from config.env import PLATFORM, FABRIC_VERSION, CACHE_DIR, FABRIC_BIN_DIR
 
 
 def wget(source_url, cache_dir=CACHE_DIR):
