@@ -9,9 +9,9 @@ Organizations:
       - &peer1
         Name: peer1
       - &orderer0
-        - Name: orderer0
+        Name: orderer0
       - &orderer1
-        - Name: orderer1
+        Name: orderer1
   - &Org2
     Name: Org2
     MSPID: Org2MSP
