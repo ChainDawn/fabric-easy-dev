@@ -25,11 +25,10 @@ PLATFORM = "darwin"
 
 def wget(source_url, cache_dir="."):
     target_file = "%s/%s" % (cache_dir, os.path.basename(source_url))
-    print(target_file)
     if os.path.exists(target_file):
         print("Target file already downloaded: %s" % target_file)
         return target_file
-    if subprocess.call(["wget", "-P", cache_dir, source_url]) is 0:
+    if subprocess.call(["wget", "-P", cache_dir, source_url]) == 0:
         print("Target file download success: %s" % target_file)
         return target_file
     return None
@@ -50,8 +49,10 @@ def download_fabric_release_binaries(cache_dir=".", target_dir="binaries/fabric/
 
 
 def setup():
+    if subprocess.call(["pip", "install", "-r", "requirements.txt"]) != 0:
+        return
     download_fabric_release_binaries(cache_dir="cache")
 
 
 if __name__ == '__main__':
-    download_fabric_release_binaries("cache")
+    setup()
