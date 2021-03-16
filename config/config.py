@@ -52,8 +52,7 @@ class Node(BaseConfigModel):
     def config_peer(self, base_dir, peer_binary, core_yaml_template, msp_dir, tls_dir, mspid, gossip_bootstrap):
         node_dir = os.path.join(base_dir, self.Name)
         if os.path.exists(node_dir):
-            # TODO: process error on exist node directory.
-            pass
+            raise Exception("Target node directory already exist: %s" % node_dir)
         os.system("mkdir -p %s" % node_dir)
         os.system("cp -r %s %s" % (msp_dir, os.path.join(node_dir, "msp")))
         os.system("cp -r %s %s" % (tls_dir, os.path.join(node_dir, "tls")))
