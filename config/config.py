@@ -17,6 +17,7 @@
 import os
 import subprocess
 import yaml
+from config import daemon
 
 
 class BaseConfigModel(dict):
@@ -57,6 +58,7 @@ class Node(BaseConfigModel):
         os.system("cp -r %s %s" % (tls_dir, os.path.join(node_dir, "tls")))
         os.system("cp %s %s" % (peer_binary, node_dir))
         self.generate_peer_config(node_dir, core_yaml_template, mspid, gossip_bootstrap)
+        daemon.config_daemon(node_dir, "easy-dev-%s-%s" % (mspid, self.Name), "peer node start")
 
     def config_orderer(self, target_dir, mspid, msp_dir, tls_dir, genesis_block):
         pass
