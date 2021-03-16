@@ -4,10 +4,14 @@ Organizations:
     MSPID: Org1MSP
     Domain: org1.fnodocker.icu
     Nodes:
-      - &peer0
-        Name: peer0
-      - &peer1
-        Name: peer1
+      - Name: peer0
+        ListenPort: 7051
+        ChaincodeListenPort: 7052
+        OperationsListenPort: 9443
+      - Name: peer1
+        ListenPort: 8051
+        ChaincodeListenPort: 8052
+        OperationsListenPort: 10443
       - &orderer0
         Name: orderer0
       - &orderer1
@@ -17,10 +21,14 @@ Organizations:
     MSPID: Org2MSP
     Domain: org2.fnodocker.icu
     Nodes:
-      - &peera
-        Name: peera
-      - &peerb
-        Name: peerb
+      - Name: peera
+        ListenPort: 9051
+        ChaincodeListenPort: 9052
+        OperationsListenPort: 11443
+      - Name: peerb
+        ListenPort: 10051
+        ChaincodeListenPort: 10052
+        OperationsListenPort: 12443
       - &orderera
         Name: orderera
       - &ordererb
