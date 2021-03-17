@@ -32,3 +32,4 @@ PEER = os.path.join(FABRIC_BIN_DIR, "peer")
 ORDERER = os.path.join(FABRIC_BIN_DIR, "orderer")
 
 CORE_YAML_TEMPLATE = os.path.join(PROJECT_HOME, "templates", "core.yaml")
+ORDERER_YAML_TEMPLATE = os.path.join(PROJECT_HOME, "templates", "orderer.yaml")
