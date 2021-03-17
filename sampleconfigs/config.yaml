@@ -4,35 +4,39 @@ Organizations:
     MSPID: Org1MSP
     Domain: org1.fnodocker.icu
     Nodes:
-      - Name: peer0
+      - Name: peer10
         ListenPort: 7051
         ChaincodeListenPort: 7052
         OperationsListenPort: 9443
-      - Name: peer1
+      - Name: peer11
         ListenPort: 8051
         ChaincodeListenPort: 8052
         OperationsListenPort: 10443
-      - &orderer0
-        Name: orderer0
-      - &orderer1
-        Name: orderer1
+      - Name: orderer10
+        ListenPort: 7050
+        OperationsListenPort: 9444
+      - Name: orderer11
+        ListenPort: 8050
+        OperationsListenPort: 10444
   - &Org2
     Name: Org2
     MSPID: Org2MSP
     Domain: org2.fnodocker.icu
     Nodes:
-      - Name: peera
+      - Name: peer20
         ListenPort: 9051
         ChaincodeListenPort: 9052
         OperationsListenPort: 11443
-      - Name: peerb
+      - Name: peer21
         ListenPort: 10051
         ChaincodeListenPort: 10052
         OperationsListenPort: 12443
-      - &orderera
-        Name: orderera
-      - &ordererb
-        Name: ordererb
+      - Name: orderer20
+        ListenPort: 9050
+        OperationsListenPort: 11444
+      - Name: orderer21
+        ListenPort: 10050
+        OperationsListenPort: 12444
 
 SystemChannel:
   Name: sys-channel-nodocker
@@ -40,10 +44,10 @@ SystemChannel:
     - *Org1
     - *Org2
   Orderers:
-    - *orderer0
-    - *orderer1
-    - *orderera
-    - *ordererb
+    - orderer10
+    - orderer11
+    - orderer20
+    - orderer21
 
 UserChannels:
   Name: mychannel
