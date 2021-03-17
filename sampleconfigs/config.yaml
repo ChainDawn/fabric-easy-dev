@@ -44,10 +44,10 @@ SystemChannel:
     - *Org1
     - *Org2
   Orderers:
-    - orderer10
-    - orderer11
-    - orderer20
-    - orderer21
+    - Org1.orderer10
+    - Org1.orderer11
+    - Org2.orderer20
+    - Org2.orderer21
 
 UserChannels:
   Name: mychannel

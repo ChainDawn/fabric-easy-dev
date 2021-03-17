@@ -16,7 +16,6 @@
 #
 import os
 import subprocess
-import yaml
 from config import daemon
 
 
@@ -42,36 +41,29 @@ class Node(BaseConfigModel):
         except KeyError:
             pass
 
-    def generate_peer_config(self, target_dir, core_yaml_template, gossip_bootstrap):
-        with open(core_yaml_template, 'r') as template:
-            core_yaml_data = yaml.load(template, yaml.CLoader)
-        # modify
-        core_yaml_data["peer"]["listenAddress"] = self.ListenAddress
-        core_yaml_data["peer"]["address"] = self.ListenAddress
-        core_yaml_data["peer"]["chaincodeListenAddress"] = self.ChaincodeListenAddress
-        core_yaml_data["peer"]["gossip"]["bootstrap"] = gossip_bootstrap
-        core_yaml_data["peer"]["localMspId"] = self.MSPID
-        core_yaml_data["operations"]["listenAddress"] = self.OperationsListenAddress
-        # dump into target directory.
-        with open(os.path.join(target_dir, "core.yaml"), 'w') as target_file:
-            yaml.dump(core_yaml_data, target_file)
+    def __config_node__(self, base_dir, command_binary, msp_dir, tls_dir, boot_command):
+        node_dir = self.__mkdir__(base_dir)
+        os.system("cp -r %s %s" % (msp_dir, os.path.join(node_dir, "msp")))
+        os.system("cp -r %s %s" % (tls_dir, os.path.join(node_dir, "tls")))
+        os.system("cp %s %s" % (command_binary, node_dir))
+        daemon.config_daemon(node_dir, "%s-peer-node$%s" % (self.OrgName, self.Name), boot_command)
+        return node_dir
 
-    def generate_orderer_config(self, target_dir):
-        pass
+    def config_peer(self, base_dir, peer_binary, msp_dir, tls_dir, gossip_bootstrap, config_generator):
+        node_dir = self.__config_node__(base_dir, peer_binary, msp_dir, tls_dir, "peer node start")
+        config_generator.generate(self, node_dir, gossip_bootstrap)
 
-    def config_peer(self, base_dir, peer_binary, core_yaml_template, msp_dir, tls_dir, gossip_bootstrap):
+    def config_orderer(self, base_dir, orderer_binary, msp_dir, tls_dir, genesis_block, config_generator):
+        node_dir = self.__config_node__(base_dir, orderer_binary, msp_dir, tls_dir, "orderer")
+        os.system("cp %s %s" % (genesis_block, os.path.join(node_dir, "genesis.block")))
+        config_generator.generate(self, node_dir)
+
+    def __mkdir__(self, base_dir):
         node_dir = os.path.join(base_dir, self.Name)
         if os.path.exists(node_dir):
             raise Exception("Target node directory already exist: %s" % node_dir)
         os.system("mkdir -p %s" % node_dir)
-        os.system("cp -r %s %s" % (msp_dir, os.path.join(node_dir, "msp")))
-        os.system("cp -r %s %s" % (tls_dir, os.path.join(node_dir, "tls")))
-        os.system("cp %s %s" % (peer_binary, node_dir))
-        self.generate_peer_config(node_dir, core_yaml_template, gossip_bootstrap)
-        daemon.config_daemon(node_dir, "%s-peer-node$%s" % (self.OrgName, self.Name), "peer node start")
-
-    def config_orderer(self, target_dir, mspid, msp_dir, tls_dir, genesis_block):
-        pass
+        return node_dir
 
 
 class Organization(BaseConfigModel):
@@ -87,6 +79,7 @@ class Organization(BaseConfigModel):
     def build(self, target_dir, msp_generator):
         self.Dir = os.path.join(target_dir, self.Name)
         if os.path.exists(self.Dir):
+            # TODO check msp directory matched with this organization
             raise Exception("Target organization directory already exist: %s" % self.Dir)
         subprocess.call(["mkdir", "-p", self.Dir])
         self.MspDir = msp_generator.generate(self)
