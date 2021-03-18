@@ -86,7 +86,7 @@ class SystemChannel:
 
 
 def config_system_channel(org_configs, consenter_nodes):
-    orgs = [Organization(o.Name, o.MSPID, o.MspDir) for o in org_configs]
+    orgs = [Organization(o.Name, o.MSPID, o.MspBaseDir) for o in org_configs]
     app = Application(orgs)
 
     consenters = [Consenter(node, "/Users/yiwenlong/Code/fabric-easy-dev/target/Org1/Org1MSP/tlsca/tlsca.org1.fnodocker.icu-cert.pem") for node in consenter_nodes]

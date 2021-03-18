@@ -17,22 +17,47 @@
 import os
 import yaml
 
+from config import daemon
 
-class ConfigGenerator:
 
-    def __init__(self, template):
+class NodeBootstrapGenerator:
+
+    def __init__(self, template, genesis_block_source, orderer_binary):
         if not os.path.exists(template):
             raise ValueError("Template file not exists: %s" % template)
         self.template = template
 
-    def generate(self, node, target_dir):
+        if not os.path.exists(genesis_block_source):
+            raise ValueError("Genesis block file not exists: %s" % genesis_block_source)
+        self.genesis_block_source = genesis_block_source
+
+        if not os.path.exists(orderer_binary):
+            raise ValueError("Orderer binary fil not exists: %s" % orderer_binary)
+        self.binary = orderer_binary
+        self.command = "orderer"
+
+    def generate(self, node):
         with open(self.template, 'r') as template:
             orderer_yaml_data = yaml.load(template, yaml.CLoader)
+
         orderer_yaml_data["General"]["ListenPort"] = node.ListenPort
-        orderer_yaml_data["General"]["localMspId"] = node.MSPID
+        orderer_yaml_data["General"]["localMspId"] = node.Org.MSPID
         orderer_yaml_data["operations"]["listenAddress"] = node.OperationsListenAddress
+
         # dump into target directory.
-        target_file_path = os.path.join(target_dir, "orderer.yaml")
+        target_file_path = os.path.join(node.Dir, "orderer.yaml")
         with open(target_file_path, 'w') as target_file:
             yaml.dump(orderer_yaml_data, target_file)
-        return target_file_path
+
+        os.system("cp %s %s" % (self.genesis_block_source, os.path.join(node.Dir, "genesis.block")))
+        os.system("cp %s %s" % (self.binary, node.Dir))
+        return daemon.config_daemon(node.Dir, node.process_label(), self.command)
+
+    @staticmethod
+    def check_config(node):
+        if os.path.exists(os.path.join(node.Dir, "orderer.yaml")) and \
+                os.path.exists(os.path.join(node.Dir, "orderer")) and \
+                os.path.exists(os.path.join(node.Dir, "genesis.block")) and \
+                daemon.check_config(node.Dir):
+            return daemon.NodeProcessHandler(node.Dir, node.process_label())
+        return None

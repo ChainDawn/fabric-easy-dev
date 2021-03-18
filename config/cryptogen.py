@@ -32,15 +32,18 @@ class CryptoConfigItem(yaml.YAMLObject):
 class CryptoGenerator(yaml.YAMLObject):
     yaml_tag = "!Crypto-config"
 
-    def __init__(self, cryptogen=env.CRYPTOGEN):
+    def __init__(self, organization, cryptogen=env.CRYPTOGEN):
         self.PeerOrgs = None
         self.Command = cryptogen
+        self.Extend = "extend"
+        self.Generate = "generate"
+        self.Organization = organization
 
-    def generate(self, organization):
-        return self.__execute__(organization, "generate")
+    def generate(self):
+        return self.__execute__(self.Organization,self.Generate)
 
-    def extend(self, organization):
-        return self.__execute__(organization, "extend")
+    def extend(self):
+        return self.__execute__(self.Organization, self.Extend)
 
     def __execute__(self, organization, sub_command):
         if organization.Dir is None or not os.path.exists(organization.Dir):
@@ -48,16 +51,13 @@ class CryptoGenerator(yaml.YAMLObject):
 
         self.PeerOrgs = [CryptoConfigItem(organization)]
         crypto_config_file = self.__dump__(organization.Dir, organization.MSPID)
-
-        output = os.path.join(organization.Dir, organization.MSPID)
         command = [
             self.Command, sub_command,
             "--config=%s" % crypto_config_file,
-            "--output=%s" % output
+            "--output=%s" % organization.MspBaseDir
         ]
         if subprocess.call(command) != 0:
             raise Exception("Execute command error!")
-        return output
 
     def __dump__(self, cache_dir, name):
         target_file = os.path.join(cache_dir, "%s-crypto-config.yaml" % name)
@@ -70,19 +70,25 @@ class CryptoGenerator(yaml.YAMLObject):
         return target_file
 
 
-class CryptogenMspPathSupport:
+class StaticOrganizationMspHolder:
 
-    def __init__(self, org_msp_dir, org_domain, check_exists=False):
-        self.org_domain = org_domain
-        self.basic_msp_dir = os.path.join(org_msp_dir, "peerOrganizations", org_domain)
-        if check_exists and not os.path.exists(self.basic_msp_dir):
-            raise Exception("Organization msp directory not exist: %s" % self.basic_msp_dir)
+    def __init__(self, organization):
+        self.Org = organization
+        self.org_crypto_dir = os.path.join(organization.MspBaseDir, "peerOrganizations", organization.Domain)
+        self.org_msp_dir = os.path.join(self.org_crypto_dir, "msp")
+        self.org_ca_dir = os.path.join(self.org_crypto_dir, "ca")
+        self.org_nodes_dir = os.path.join(self.org_crypto_dir, "peers")
+        self.org_tlsca_dir = os.path.join(self.org_nodes_dir, "tlsca")
+        self.org_users_dir = os.path.join(self.org_nodes_dir, "users")
 
-    def org_msp_dir(self):
-        return os.path.join(self.basic_msp_dir, "msp")
+    def node_msp(self, node_name):
+        return os.path.join(self.org_nodes_dir, "%s.%s" % (node_name, self.Org.Domain), "msp")
 
-    def node_msp_dir(self, node_name):
-        return os.path.join(self.basic_msp_dir, "peers", "%s.%s" % (node_name, self.org_domain), "msp")
+    def node_tls(self, node_name):
+        return os.path.join(self.org_nodes_dir, "%s.%s" % (node_name, self.Org.Domain), "tls")
 
-    def node_tls_dir(self, node_name):
-        return os.path.join(self.basic_msp_dir, "peers", "%s.%s" % (node_name, self.org_domain), "tls")
+    def org_msp(self):
+        return self.org_msp_dir
+
+    def check(self):
+        return os.path.exists(self.org_msp_dir)

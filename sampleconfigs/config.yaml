@@ -5,17 +5,23 @@ Organizations:
     Domain: org1.fnodocker.icu
     Nodes:
       - Name: peer10
+        Type: peer
         ListenPort: 7051
         ChaincodeListenPort: 7052
         OperationsListenPort: 9443
+        GossipBootStrapNode: peer11
       - Name: peer11
+        Type: peer
         ListenPort: 8051
         ChaincodeListenPort: 8052
         OperationsListenPort: 10443
+        GossipBootStrapNode: peer10
       - Name: orderer10
+        Type: orderer
         ListenPort: 7050
         OperationsListenPort: 9444
       - Name: orderer11
+        Type: orderer
         ListenPort: 8050
         OperationsListenPort: 10444
   - &Org2
@@ -24,16 +30,22 @@ Organizations:
     Domain: org2.fnodocker.icu
     Nodes:
       - Name: peer20
+        Type: peer
         ListenPort: 9051
         ChaincodeListenPort: 9052
         OperationsListenPort: 11443
+        GossipBootStrapNode: peer21
       - Name: peer21
+        Type: peer
         ListenPort: 10051
         ChaincodeListenPort: 10052
         OperationsListenPort: 12443
+        GossipBootStrapNode: peer20
       - Name: orderer20
+        Type: orderer
         ListenPort: 9050
         OperationsListenPort: 11444
       - Name: orderer21
+        Type: orderer
         ListenPort: 10050
         OperationsListenPort: 12444

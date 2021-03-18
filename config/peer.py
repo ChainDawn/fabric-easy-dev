@@ -17,26 +17,43 @@
 import os
 import yaml
 
+from config import daemon
 
-class ConfigGenerator:
 
-    def __init__(self, template):
+class NodeBootstrapGenerator:
+
+    def __init__(self, template, peer_binary):
         if not os.path.exists(template):
             raise ValueError("Template file not exists: %s" % template)
         self.template = template
+        if not os.path.exists(peer_binary):
+            raise ValueError("Peer binary not exists: %s" % peer_binary)
+        self.binary = peer_binary
+        self.command = "peer node start"
 
-    def generate(self, node, target_dir, gossip_bootstrap):
+    def config(self, node):
         with open(self.template, 'r') as template:
             core_yaml_data = yaml.load(template, yaml.CLoader)
+
         # modify
         core_yaml_data["peer"]["listenAddress"] = node.ListenAddress
         core_yaml_data["peer"]["address"] = node.ListenAddress
         core_yaml_data["peer"]["chaincodeListenAddress"] = node.ChaincodeListenAddress
-        core_yaml_data["peer"]["gossip"]["bootstrap"] = gossip_bootstrap
-        core_yaml_data["peer"]["localMspId"] = node.MSPID
+        core_yaml_data["peer"]["gossip"]["bootstrap"] = node.gossip_bootstrap_address()
+        core_yaml_data["peer"]["localMspId"] = node.Org.MSPID
         core_yaml_data["operations"]["listenAddress"] = node.OperationsListenAddress
+
         # dump into target directory.
-        target_file_path = os.path.join(target_dir, "core.yaml")
-        with open(os.path.join(target_dir, "core.yaml"), 'w') as target_file:
+        with open(os.path.join(node.Dir, "core.yaml"), 'w') as target_file:
             yaml.dump(core_yaml_data, target_file)
-        return target_file_path
+
+        os.system("cp %s %s" % (self.binary, node.Dir))
+        return daemon.config_daemon(node.Dir, node.process_label(), self.command)
+
+    @staticmethod
+    def check_config(node):
+        if os.path.exists(os.path.join(node.Dir, "core.yaml")) and \
+                os.path.exists(os.path.join(node.Dir, "peer")) and \
+                daemon.check_config(node.Dir):
+            return daemon.NodeProcessHandler(node.Dir, node.process_label())
+        return None

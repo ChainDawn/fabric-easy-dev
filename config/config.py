@@ -16,7 +16,6 @@
 #
 import os
 import subprocess
-from config import daemon
 
 
 class BaseConfigModel(dict):
@@ -27,72 +26,75 @@ class BaseConfigModel(dict):
 
 class Node(BaseConfigModel):
 
-    def __init__(self, organization, **source):
+    def __init__(self, organization, **config):
         super().__init__()
-        self.update(source)
-        self.MSPID = organization.MSPID
-        self.OrgName = organization.Name
-        self.Domain = "%s.%s" % (self.Name, organization.Domain)
-        self.Address = "%s:%s" % (self.Domain, self.ListenPort)
-        self.ListenAddress = "0.0.0.0:%s" % self.ListenPort
-        self.OperationsListenAddress = "127.0.0.1:%s" % self.OperationsListenPort
-        try:
-            self.ChaincodeListenAddress = "0.0.0.0:%s" % self.ChaincodeListenPort
-        except KeyError:
-            pass
+        self.update(config)
+        self.Org = organization
+        self.Domain = "%s.%s" % (self.Name, self.Org.Domain)
 
-    def __config_node__(self, base_dir, command_binary, msp_dir, tls_dir, boot_command):
-        node_dir = self.__mkdir__(base_dir)
-        os.system("cp -r %s %s" % (msp_dir, os.path.join(node_dir, "msp")))
-        os.system("cp -r %s %s" % (tls_dir, os.path.join(node_dir, "tls")))
-        os.system("cp %s %s" % (command_binary, node_dir))
-        daemon.config_daemon(node_dir, "%s-peer-node$%s" % (self.OrgName, self.Name), boot_command)
-        return node_dir
+        self.Dir = os.path.join(organization.Dir, self.Name)
+        if not os.path.exists(self.Dir):
+            subprocess.call(["mkdir", "-p", self.Dir])
 
-    def config_peer(self, base_dir, peer_binary, msp_dir, tls_dir, gossip_bootstrap, config_generator):
-        node_dir = self.__config_node__(base_dir, peer_binary, msp_dir, tls_dir, "peer node start")
-        config_generator.generate(self, node_dir, gossip_bootstrap)
+        self.MspDir = os.path.join(self.Dir, "msp")
+        if not os.path.exists(self.MspDir):
+            node_msp_source = self.Org.msp_path_support.node_msp_dir(self.Name)
+            if not os.path.exists(node_msp_source):
+                raise Exception("Node msp directory not exists: %s" % node_msp_source)
+            os.system("cp -r %s %s" % (node_msp_source, self.MspDir))
 
-    def config_orderer(self, base_dir, orderer_binary, msp_dir, tls_dir, genesis_block, config_generator):
-        node_dir = self.__config_node__(base_dir, orderer_binary, msp_dir, tls_dir, "orderer")
-        os.system("cp %s %s" % (genesis_block, os.path.join(node_dir, "genesis.block")))
-        config_generator.generate(self, node_dir)
+        self.TlsDir = os.path.join(self.Dir, "tls")
+        if not os.path.exists(self.MspDir):
+            node_tls_source = self.Org.msp_path_support.node_tls_dir(self.Name)
+            if not os.path.exists(node_tls_source):
+                raise Exception("Node tls directory not exists: %s" % node_tls_source)
+            os.system("cp -r %s %s" % (node_tls_source, self.TlsDir))
 
-    def __mkdir__(self, base_dir):
-        node_dir = os.path.join(base_dir, self.Name)
-        if os.path.exists(node_dir):
-            raise Exception("Target node directory already exist: %s" % node_dir)
-        os.system("mkdir -p %s" % node_dir)
-        return node_dir
+        if self.Type != "peer" and self.Type != "orderer":
+            raise ValueError("Error node type: %s", self.Type)
+
+    def gossip_bootstrap_address(self):
+        return self.Org.node_access_address(self.GossipBootStrapNode)
+
+    def process_label(self):
+        return "%s-%s-%s" % (self.Org.Name, self.Type, self.Name)
+
+    def config(self, bootstrap_config_generator):
+        bootstrap_config_generator.config(self)
 
 
 class Organization(BaseConfigModel):
 
-    def __init__(self, **source):
+    def __init__(self, target_dir, msp_support, **values):
         super().__init__()
-        self.update(source)
-        if "Nodes" in source:
-            self.Nodes = [Node(self, **item) for item in source["Nodes"]]
-        self.Dir = None
-        self.MspDir = None
+        self.update(values)
+        self.msp_generator, self.msp_holder = msp_support(self)
 
-    def build(self, target_dir, msp_generator):
+        if not os.path.exists(target_dir):
+            raise ValueError("target_dir not exists: %s" % target_dir)
+
         self.Dir = os.path.join(target_dir, self.Name)
-        if os.path.exists(self.Dir):
-            if self.__check_exist_msp__():
-                self.MspDir = os.path.join(self.Dir, self.MSPID, "msp")
-                return
-            raise Exception("Target organization directory already exist: %s" % self.Dir)
-        subprocess.call(["mkdir", "-p", self.Dir])
-        self.MspDir = msp_generator.generate(self)
+        if not os.path.exists(self.Dir):
+            subprocess.call(["mkdir", "-p", self.Dir])
 
-    def extend_msp(self, msp_generator):
-        return msp_generator.extend(self)
+        self.MspBaseDir = os.path.join(self.Dir, self.MSPID)
+        if not os.path.exists(self.MspBaseDir):
+            self.msp_generator.generate(self)
 
-    def __check_exist_msp__(self):
-        if not os.path.exists(os.path.join(self.Dir, self.MSPID)):
-            return False
-        return True
+        if not self.msp_holder.check():
+            raise Exception("Organization msp check failed!!")
+
+        self.NodeMap = {}
+        if len(self.Nodes) > 0:
+            return
+        for node in self.Nodes:
+            self.NodeMap[node["Name"]] = Node(self, **node)
+
+    def add_node(self, *nodes):
+        pass
+
+    def node_access_address(self, node_name):
+        pass
 
 
 class Config(BaseConfigModel):
