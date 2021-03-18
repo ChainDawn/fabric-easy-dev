@@ -16,5 +16,42 @@
 #
 import os
 import sys
+import yaml
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
+KEY_ORGANIZATIONS = "Organizations"
+KEY_SYSTEM_CHANNEL = "SystemChannel"
+
+
+class Network:
+
+    def __init__(self, network_config, target_dir):
+        if not os.path.exists(network_config):
+            raise ValueError("Network config file not exists: %s" % network_config)
+        if not os.path.exists(target_dir):
+            os.system("mkdir -p %s" % target_dir)
+
+        with open(network_config, 'r') as config:
+            config_values = yaml.load(config, yaml.CLoader)
+
+        if KEY_ORGANIZATIONS not in config_values or len(config_values[KEY_ORGANIZATIONS]) == 0:
+            raise Exception("No organization configuration found!!")
+
+        if KEY_SYSTEM_CHANNEL not in config_values:
+            raise Exception("No system channel configuration found!!")
+
+    def deploy(self):
+        pass
+
+    def boot(self):
+        pass
+
+    def stop(self):
+        pass
+
+    def clear(self):
+        pass
+
+    def down(self):
+        pass
