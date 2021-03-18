@@ -17,12 +17,12 @@
 import os
 import yaml
 
-from config import daemon
+from config import daemon, env
 
 
 class NodeBootstrapGenerator:
 
-    def __init__(self, template, genesis_block_source, orderer_binary):
+    def __init__(self, genesis_block_source, template=env.ORDERER_YAML_TEMPLATE, orderer_binary=env.ORDERER):
         if not os.path.exists(template):
             raise ValueError("Template file not exists: %s" % template)
         self.template = template
