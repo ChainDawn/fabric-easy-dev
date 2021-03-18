@@ -58,5 +58,5 @@ SystemChannel:
         - orderer10
         - orderer11
     - Org2:
+        - orderer20
         - orderer21
-        - orderer22

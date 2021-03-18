@@ -26,35 +26,31 @@ class CryptoConfigItem(yaml.YAMLObject):
     def __init__(self, organization):
         self.Name = organization.MSPID
         self.Domain = organization.Domain
-        self.Specs = [{"Hostname": node.Name} for node in organization.Nodes]
+        self.Specs = [{"Hostname": node["Name"]} for node in organization.Nodes]
 
 
 class CryptoGenerator(yaml.YAMLObject):
     yaml_tag = "!Crypto-config"
 
-    def __init__(self, organization, cryptogen=env.CRYPTOGEN):
+    def __init__(self):
         self.PeerOrgs = None
-        self.Command = cryptogen
-        self.Extend = "extend"
-        self.Generate = "generate"
-        self.Organization = organization
 
-    def generate(self):
-        return self.__execute__(self.Organization,self.Generate)
+    def generate(self, org):
+        return self.__execute__(org, "generate")
 
-    def extend(self):
-        return self.__execute__(self.Organization, self.Extend)
+    def extend(self, org):
+        return self.__execute__(org, "extend")
 
-    def __execute__(self, organization, sub_command):
-        if organization.Dir is None or not os.path.exists(organization.Dir):
-            raise ValueError("Organization working directory not exists: %s" % organization.Dir)
+    def __execute__(self, org, sub_command, cryptogen=env.CRYPTOGEN):
+        if org.Dir is None or not os.path.exists(org.Dir):
+            raise ValueError("Organization working directory not exists: %s" % org.Dir)
 
-        self.PeerOrgs = [CryptoConfigItem(organization)]
-        crypto_config_file = self.__dump__(organization.Dir, organization.MSPID)
+        self.PeerOrgs = [CryptoConfigItem(org)]
+        crypto_config_file = self.__dump__(org.Dir, org.MSPID)
         command = [
-            self.Command, sub_command,
+            cryptogen, sub_command,
             "--config=%s" % crypto_config_file,
-            "--output=%s" % organization.MspBaseDir
+            "--output=%s" % org.MspBaseDir
         ]
         if subprocess.call(command) != 0:
             raise Exception("Execute command error!")
@@ -65,6 +61,7 @@ class CryptoGenerator(yaml.YAMLObject):
         while os.path.exists(target_file):
             target_file = os.path.join(cache_dir, "%s-crypto-config-%s.yaml" % (name, index))
             index = index + 1
+
         with open(target_file, "w") as target:
             yaml.dump(self, target)
         return target_file

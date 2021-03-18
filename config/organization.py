@@ -31,21 +31,20 @@ class Node(BaseConfigModel):
         self.update(config)
         self.Org = organization
         self.Domain = "%s.%s" % (self.Name, self.Org.Domain)
-
         self.Dir = os.path.join(organization.Dir, self.Name)
         if not os.path.exists(self.Dir):
             subprocess.call(["mkdir", "-p", self.Dir])
 
         self.MspDir = os.path.join(self.Dir, "msp")
         if not os.path.exists(self.MspDir):
-            node_msp_source = self.Org.msp_path_support.node_msp_dir(self.Name)
+            node_msp_source = self.Org.node_msp(self.Name)
             if not os.path.exists(node_msp_source):
                 raise Exception("Node msp directory not exists: %s" % node_msp_source)
             os.system("cp -r %s %s" % (node_msp_source, self.MspDir))
 
         self.TlsDir = os.path.join(self.Dir, "tls")
-        if not os.path.exists(self.MspDir):
-            node_tls_source = self.Org.msp_path_support.node_tls_dir(self.Name)
+        if not os.path.exists(self.TlsDir):
+            node_tls_source = self.Org.node_tls(self.Name)
             if not os.path.exists(node_tls_source):
                 raise Exception("Node tls directory not exists: %s" % node_tls_source)
             os.system("cp -r %s %s" % (node_tls_source, self.TlsDir))
@@ -68,33 +67,39 @@ class Organization(BaseConfigModel):
     def __init__(self, target_dir, msp_support, **values):
         super().__init__()
         self.update(values)
-        self.msp_generator, self.msp_holder = msp_support(self)
 
         if not os.path.exists(target_dir):
             raise ValueError("target_dir not exists: %s" % target_dir)
-
         self.Dir = os.path.join(target_dir, self.Name)
         if not os.path.exists(self.Dir):
             subprocess.call(["mkdir", "-p", self.Dir])
 
         self.MspBaseDir = os.path.join(self.Dir, self.MSPID)
+        self.msp_generator, self.msp_holder = msp_support(self)
+
         if not os.path.exists(self.MspBaseDir):
             self.msp_generator.generate(self)
 
         if not self.msp_holder.check():
             raise Exception("Organization msp check failed!!")
 
-        self.NodeMap = {}
-        if len(self.Nodes) > 0:
+        if len(self.Nodes) == 0:
+            # TODO log information.
             return
-        for node in self.Nodes:
-            self.NodeMap[node["Name"]] = Node(self, **node)
+
+        self.NodeMap = {node["Name"]: Node(self, **node) for node in self.Nodes}
 
     def add_node(self, *nodes):
         pass
 
     def node_access_address(self, node_name):
         pass
+
+    def node_msp(self, node_name):
+        return self.msp_holder.node_msp(node_name)
+
+    def node_tls(self, node_name):
+        return self.msp_holder.node_tls(node_name)
 
 
 class Config(BaseConfigModel):

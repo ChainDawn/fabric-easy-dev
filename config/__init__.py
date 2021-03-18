@@ -20,13 +20,16 @@ import yaml
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
+from config.organization import Organization
+from config.msp_support import static_msp_support
+
 KEY_ORGANIZATIONS = "Organizations"
 KEY_SYSTEM_CHANNEL = "SystemChannel"
 
 
 class Network:
 
-    def __init__(self, network_config, target_dir):
+    def __init__(self, network_config, target_dir, msp_support_impl=static_msp_support):
         if not os.path.exists(network_config):
             raise ValueError("Network config file not exists: %s" % network_config)
         if not os.path.exists(target_dir):
@@ -41,7 +44,10 @@ class Network:
         if KEY_SYSTEM_CHANNEL not in config_values:
             raise Exception("No system channel configuration found!!")
 
-    def deploy(self):
+        self.Organizations = {org["Name"]: Organization(target_dir, msp_support_impl, **org)
+                              for org in config_values[KEY_ORGANIZATIONS]}
+
+    def deploy(self, interactive=False):
         pass
 
     def boot(self):
