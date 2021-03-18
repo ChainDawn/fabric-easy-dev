@@ -68,3 +68,21 @@ class CryptoGenerator(yaml.YAMLObject):
         with open(target_file, "w") as target:
             yaml.dump(self, target)
         return target_file
+
+
+class CryptogenMspPathSupport:
+
+    def __init__(self, org_msp_dir, org_domain, check_exists=False):
+        self.org_domain = org_domain
+        self.basic_msp_dir = os.path.join(org_msp_dir, "peerOrganizations", org_domain)
+        if check_exists and not os.path.exists(self.basic_msp_dir):
+            raise Exception("Organization msp directory not exist: %s" % self.basic_msp_dir)
+
+    def org_msp_dir(self):
+        return os.path.join(self.basic_msp_dir, "msp")
+
+    def node_msp_dir(self, node_name):
+        return os.path.join(self.basic_msp_dir, "peers", "%s.%s" % (node_name, self.org_domain), "msp")
+
+    def node_tls_dir(self, node_name):
+        return os.path.join(self.basic_msp_dir, "peers", "%s.%s" % (node_name, self.org_domain), "tls")
