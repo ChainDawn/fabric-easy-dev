@@ -79,7 +79,9 @@ class Organization(BaseConfigModel):
     def build(self, target_dir, msp_generator):
         self.Dir = os.path.join(target_dir, self.Name)
         if os.path.exists(self.Dir):
-            # TODO check msp directory matched with this organization
+            if self.__check_exist_msp__():
+                self.MspDir = os.path.join(self.Dir, self.MSPID, "msp")
+                return
             raise Exception("Target organization directory already exist: %s" % self.Dir)
         subprocess.call(["mkdir", "-p", self.Dir])
         self.MspDir = msp_generator.generate(self)
@@ -87,17 +89,10 @@ class Organization(BaseConfigModel):
     def extend_msp(self, msp_generator):
         return msp_generator.extend(self)
 
-
-class SystemChannel(BaseConfigModel):
-
-    def __init__(self, **source):
-        super().__init__()
-        self.update(source)
-        if "Organizations" in source:
-            self.Organizations = [Organization(**item) for item in source["Organizations"]]
-
-    def generate_genesis_block(self, target_dir):
-        pass
+    def __check_exist_msp__(self):
+        if not os.path.exists(os.path.join(self.Dir, self.MSPID)):
+            return False
+        return True
 
 
 class Config(BaseConfigModel):
@@ -107,8 +102,6 @@ class Config(BaseConfigModel):
         self.update(source)
         if "Organizations" in source:
             self.Organizations = [Organization(**item) for item in source["Organizations"]]
-        if "SystemChannel" in source:
-            self.SystemChannel = SystemChannel(**source["SystemChannel"])
 
     def generate_msp(self, target_dir):
         for organization in self.Organizations:

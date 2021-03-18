@@ -72,7 +72,7 @@ def __policies__():
 
 class Application(yaml.YAMLObject):
 
-    def __init__(self, *organizations):
+    def __init__(self, organizations):
         self.ACLs = __acls__()
         self.Capabilities = __capabilities__()
         self.Organizations = organizations

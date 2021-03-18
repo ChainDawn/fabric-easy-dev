@@ -35,15 +35,16 @@ def __policies__():
 
 class Consenter(yaml.YAMLObject):
 
-    def __init__(self, orderer_node, server_cert):
+    def __init__(self, orderer_node, server_tls_cert):
         self.Host = orderer_node.Domain
         self.Port = orderer_node.ListenPort
-        self.ServerTLSCert = server_cert
+        self.ServerTLSCert = server_tls_cert
+        self.ClientTLSCert = server_tls_cert
 
 
 class EtcdRaft(yaml.YAMLObject):
 
-    def __init__(self, *consenters):
+    def __init__(self, consenters):
         self.Consenters = consenters
         self.Options = {
             "TickInterval":         "500ms",
@@ -56,7 +57,7 @@ class EtcdRaft(yaml.YAMLObject):
 
 class Orderer(yaml.YAMLObject):
 
-    def __init__(self, etcdraft, *addresses):
+    def __init__(self, etcdraft, addresses):
         self.OrdererType = "etcdraft"
         self.Addresses = addresses
         self.BatchTimeout = "2s"

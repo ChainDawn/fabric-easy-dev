@@ -14,8 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import os
+import sys
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
+
 import yaml
+from config import env
 from config.configtx.policy import Policy
+from config.configtx.organization import Organization
+from config.configtx.application import Application
+from config.configtx.orderer import Orderer, EtcdRaft, Consenter
 
 
 def __channel_capabilities__():
@@ -42,7 +51,7 @@ class SystemChannelProfile(yaml.YAMLObject):
         self.Policies = __channel_policies__()
 
 
-class ApplicationProfile(yaml.YAMLObject):
+class UserChannelProfile(yaml.YAMLObject):
 
     def __init__(self, application, consortium):
         self.Application = application
@@ -53,14 +62,44 @@ class ApplicationProfile(yaml.YAMLObject):
 
 class Profiles(yaml.YAMLObject):
 
-    def __init__(self, **profile):
-        self.Profiles = profile
+    def __init__(self, profiles):
+        self.Profiles = profiles
 
-    def __dump__(self):
-        pass
+    def __dump__(self, cache_dir=env.CACHE_DIR):
+        with open(os.path.join(cache_dir, "configtx.yaml"), "w") as configtx:
+            yaml.dump(self, configtx)
 
     def generateSystemGenesisBlock(self, profile_name, sys_channel_name, target_dir):
         pass
 
     def generateCreateChannelTx(self, profile_name, channel_name, target_dir):
         pass
+
+
+class SystemChannel:
+
+    def __init__(self, orgs, orderer_nodes):
+        self.Organizations = orgs
+
+    def generate_genesis_block(self, target_dir):
+        pass
+
+
+def config_system_channel(org_configs, consenter_nodes):
+    orgs = [Organization(o.Name, o.MSPID, o.MspDir) for o in org_configs]
+    app = Application(orgs)
+
+    consenters = [Consenter(node, "/Users/yiwenlong/Code/fabric-easy-dev/target/Org1/Org1MSP/tlsca/tlsca.org1.fnodocker.icu-cert.pem") for node in consenter_nodes]
+    etcdraft = EtcdRaft(consenters)
+    addresses = [node.Address for node in consenter_nodes]
+    orderer = Orderer(etcdraft, addresses)
+
+    consortiums = {"SimpleCOnsortiums": {"Organizations": orgs}}
+
+    sys_channel_profile = SystemChannelProfile(app, orderer, consortiums)
+    pfs = Profiles({"SystemChannelProfile": sys_channel_profile})
+    pfs.__dump__()
+
+
+def config_user_channel():
+    pass
