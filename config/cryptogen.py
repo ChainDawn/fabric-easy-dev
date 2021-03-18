@@ -29,34 +29,42 @@ class CryptoConfigItem(yaml.YAMLObject):
         self.Specs = [{"Hostname": node.Name} for node in organization.Nodes]
 
 
-class CryptoConfig(yaml.YAMLObject):
+class CryptoGenerator(yaml.YAMLObject):
     yaml_tag = "!Crypto-config"
 
     def __init__(self, cryptogen=env.CRYPTOGEN):
         self.PeerOrgs = None
         self.Command = cryptogen
 
-    def name(self):
-        return self.PeerOrgs[0].Name
-
-    def domain(self):
-        return self.PeerOrgs[0].Domain
-
     def generate(self, organization):
+        return self.__execute__(organization, "generate")
+
+    def extend(self, organization):
+        return self.__execute__(organization, "extend")
+
+    def __execute__(self, organization, sub_command):
+        if organization.Dir is None or not os.path.exists(organization.Dir):
+            raise ValueError("Organization working directory not exists: %s" % organization.Dir)
+
         self.PeerOrgs = [CryptoConfigItem(organization)]
-        crypto_config_file = self.__dump__(organization.Dir)
-        output = os.path.join(organization.Dir, self.name())
-        subprocess.call([self.Command, "generate", "--config=%s" % crypto_config_file, "--output=%s" % output])
-        os.system("mv %s/peerOrganizations/%s/* %s" % (output, self.domain(), output))
-        os.system("rm -fr %s" % os.path.join(output, "peerOrganizations"))
-        os.system("mv %s %s" % (os.path.join(output, "peers"), os.path.join(output, "nodes")))
+        crypto_config_file = self.__dump__(organization.Dir, organization.MSPID)
+
+        output = os.path.join(organization.Dir, organization.MSPID)
+        command = [
+            self.Command, sub_command,
+            "--config=%s" % crypto_config_file,
+            "--output=%s" % output
+        ]
+        if subprocess.call(command) != 0:
+            raise Exception("Execute command error!")
         return output
 
-    def extend(self, target_dir):
-        pass
-
-    def __dump__(self, cache_dir):
-        target_file = os.path.join(cache_dir, "%s-crypto-config.yaml" % self.name())
+    def __dump__(self, cache_dir, name):
+        target_file = os.path.join(cache_dir, "%s-crypto-config.yaml" % name)
+        index = 1
+        while os.path.exists(target_file):
+            target_file = os.path.join(cache_dir, "%s-crypto-config-%s.yaml" % (name, index))
+            index = index + 1
         with open(target_file, "w") as target:
             yaml.dump(self, target)
         return target_file
