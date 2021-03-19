@@ -28,6 +28,7 @@ CACHE_DIR = os.path.join(TARGET_DIR, "cache")
 FABRIC_BIN_DIR = os.path.join(TARGET_DIR, "fabric-%s-v%s" % (PLATFORM, FABRIC_VERSION), "bin")
 
 CRYPTOGEN = os.path.join(FABRIC_BIN_DIR, "cryptogen")
+CONFIGTXGEN = os.path.join(FABRIC_BIN_DIR, "configtxgen")
 PEER = os.path.join(FABRIC_BIN_DIR, "peer")
 ORDERER = os.path.join(FABRIC_BIN_DIR, "orderer")
 

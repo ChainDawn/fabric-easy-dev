@@ -89,3 +89,6 @@ class StaticOrganizationMspHolder:
 
     def check(self):
         return os.path.exists(self.org_msp_dir)
+
+    def node_server_tls_cert(self, node_name):
+        return os.path.join(self.org_nodes_dir, "%s.%s" % (node_name, self.Org.Domain), "tls", "server.crt")

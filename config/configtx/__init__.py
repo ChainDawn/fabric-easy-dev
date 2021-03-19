@@ -43,20 +43,23 @@ def __channel_policies__():
 
 class SystemChannelProfile(yaml.YAMLObject):
 
-    def __init__(self, application, orderer, consortiums):
-        self.Application = application
+    def __init__(self, sys_channel):
+        channel_orgs = [Organization(o.Name, o.MSPID, o.MspBaseDir) for o in sys_channel.Orgs]
+        self.Application = app = Application(channel_orgs)
         self.Capabilities = __channel_capabilities__()
-        self.Consortiums = consortiums
-        self.Orderer = orderer
+        self.Consortiums = {"SimpleCOnsortiums": {"Organizations": channel_orgs}}
+        etcdraft = EtcdRaft([Consenter(node) for node in sys_channel.Ords])
+        addresses = [node.Address for node in sys_channel.Ords]
+        self.Orderer = Orderer(etcdraft, addresses)
         self.Policies = __channel_policies__()
 
 
 class UserChannelProfile(yaml.YAMLObject):
 
-    def __init__(self, application, consortium):
-        self.Application = application
+    def __init__(self, _application, _consortium):
+        self.Application = _application
         self.Capabilities = __channel_capabilities__()
-        self.Consortium = consortium
+        self.Consortium = _consortium
         self.Policies = __channel_policies__()
 
 
@@ -65,41 +68,22 @@ class Profiles(yaml.YAMLObject):
     def __init__(self, profiles):
         self.Profiles = profiles
 
-    def __dump__(self, cache_dir=env.CACHE_DIR):
-        with open(os.path.join(cache_dir, "configtx.yaml"), "w") as configtx:
-            yaml.dump(self, configtx)
-
-    def generateSystemGenesisBlock(self, profile_name, sys_channel_name, target_dir):
-        pass
-
-    def generateCreateChannelTx(self, profile_name, channel_name, target_dir):
-        pass
+    def dump(self, target_file):
+        with open(target_file, "w") as config_file:
+            yaml.dump(self, config_file)
+        return target_file
 
 
-class SystemChannel:
+class ConfigTxSupport:
 
-    def __init__(self, orgs, orderer_nodes):
-        self.Organizations = orgs
+    def __init__(self, configtxgen=env.CONFIGTXGEN):
+        self.cmd = configtxgen
 
-    def generate_genesis_block(self, target_dir):
-        pass
+    def generate(self, channel, target_dir, is_sys=False):
+        if not os.path.exists(target_dir):
+            raise ValueError("Target directory not exists: %s" % target_dir)
 
-
-def config_system_channel(org_configs, consenter_nodes):
-    orgs = [Organization(o.Name, o.MSPID, o.MspBaseDir) for o in org_configs]
-    app = Application(orgs)
-
-    consenters = [Consenter(node, "/Users/yiwenlong/Code/fabric-easy-dev/target/Org1/Org1MSP/tlsca/tlsca.org1.fnodocker.icu-cert.pem") for node in consenter_nodes]
-    etcdraft = EtcdRaft(consenters)
-    addresses = [node.Address for node in consenter_nodes]
-    orderer = Orderer(etcdraft, addresses)
-
-    consortiums = {"SimpleCOnsortiums": {"Organizations": orgs}}
-
-    sys_channel_profile = SystemChannelProfile(app, orderer, consortiums)
-    pfs = Profiles({"SystemChannelProfile": sys_channel_profile})
-    pfs.__dump__()
-
-
-def config_user_channel():
-    pass
+        profile_name = "%s-Profile" % channel.Name
+        profile = SystemChannelProfile(channel) if is_sys else UserChannelProfile(channel)
+        profiles = Profiles({profile_name: profile})
+        configtx_yaml = profiles.dump(os.path.join(target_dir, "%s-configtx.yaml" % channel.Name))

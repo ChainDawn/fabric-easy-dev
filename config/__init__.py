@@ -20,6 +20,7 @@ import yaml
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
+import config.channel
 from config.organization import Organization
 from config.msp_support import static_msp_support
 
@@ -46,6 +47,8 @@ class Network:
 
         self.Organizations = {org["Name"]: Organization(target_dir, msp_support_impl, **org)
                               for org in config_values[KEY_ORGANIZATIONS]}
+
+        self.SysChannel = channel.SystemChannel(self.Organizations, **config_values[KEY_SYSTEM_CHANNEL])
 
     def deploy(self, interactive=False):
         pass

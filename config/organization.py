@@ -30,7 +30,10 @@ class Node(BaseConfigModel):
         super().__init__()
         self.update(config)
         self.Org = organization
+
         self.Domain = "%s.%s" % (self.Name, self.Org.Domain)
+        self.Address = "%s:%s" % (self.Domain, self.ListenPort)
+
         self.Dir = os.path.join(organization.Dir, self.Name)
         if not os.path.exists(self.Dir):
             subprocess.call(["mkdir", "-p", self.Dir])
@@ -61,6 +64,9 @@ class Node(BaseConfigModel):
     def config(self, bootstrap_config_generator):
         bootstrap_config_generator.config(self)
 
+    def server_tls_cert(self):
+        return self.Org.node_server_tls_cert(self.Name)
+
 
 class Organization(BaseConfigModel):
 
@@ -75,12 +81,12 @@ class Organization(BaseConfigModel):
             subprocess.call(["mkdir", "-p", self.Dir])
 
         self.MspBaseDir = os.path.join(self.Dir, self.MSPID)
-        self.msp_generator, self.msp_holder = msp_support(self)
+        self.msp_generator, self.msp_source_holder = msp_support(self)
 
         if not os.path.exists(self.MspBaseDir):
             self.msp_generator.generate(self)
 
-        if not self.msp_holder.check():
+        if not self.msp_source_holder.check():
             raise Exception("Organization msp check failed!!")
 
         if len(self.Nodes) == 0:
@@ -96,10 +102,13 @@ class Organization(BaseConfigModel):
         pass
 
     def node_msp(self, node_name):
-        return self.msp_holder.node_msp(node_name)
+        return self.msp_source_holder.node_msp(node_name)
 
     def node_tls(self, node_name):
-        return self.msp_holder.node_tls(node_name)
+        return self.msp_source_holder.node_tls(node_name)
+
+    def node_server_tls_cert(self, node_name):
+        return self.msp_source_holder.node_server_tls_cert(node_name)
 
 
 class Config(BaseConfigModel):

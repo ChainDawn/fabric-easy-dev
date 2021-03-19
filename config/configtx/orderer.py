@@ -35,11 +35,11 @@ def __policies__():
 
 class Consenter(yaml.YAMLObject):
 
-    def __init__(self, orderer_node, server_tls_cert):
+    def __init__(self, orderer_node):
         self.Host = orderer_node.Domain
         self.Port = orderer_node.ListenPort
-        self.ServerTLSCert = server_tls_cert
-        self.ClientTLSCert = server_tls_cert
+        self.ServerTLSCert = orderer_node.server_tls_cert()
+        self.ClientTLSCert = orderer_node.server_tls_cert()
 
 
 class EtcdRaft(yaml.YAMLObject):
