@@ -31,7 +31,10 @@ class NodeBootstrapGenerator:
         self.binary = peer_binary
         self.command = "peer node start"
 
-    def config(self, node):
+    def config(self, node, force_rebuild=False):
+        if force_rebuild:
+            self.clear()
+
         with open(self.template, 'r') as template:
             core_yaml_data = yaml.load(template, yaml.CLoader)
 
@@ -49,6 +52,9 @@ class NodeBootstrapGenerator:
 
         os.system("cp %s %s" % (self.binary, node.Dir))
         return daemon.config_daemon(node.Dir, node.process_label(), self.command)
+
+    def clear(self):
+        pass
 
     @staticmethod
     def check_config(node):

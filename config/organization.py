@@ -67,8 +67,8 @@ class Node(BaseConfigModel):
     def process_label(self):
         return "%s-%s-%s" % (self.Org.Name, self.Type, self.Name)
 
-    def config(self, bootstrap_config_generator):
-        bootstrap_config_generator.config(self)
+    def config(self, bootstrap_config_generator, force_rebuild=False):
+        bootstrap_config_generator.config(self, force_rebuild)
 
     def server_tls_cert(self):
         return self.Org.node_server_tls_cert(self.Name)

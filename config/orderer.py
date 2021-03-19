@@ -36,13 +36,16 @@ class NodeBootstrapGenerator:
         self.binary = orderer_binary
         self.command = "orderer"
 
-    def config(self, node):
+    def config(self, node, force_rebuild=False):
+        if force_rebuild:
+            self.clear()
+
         with open(self.template, 'r') as template:
             orderer_yaml_data = yaml.load(template, yaml.CLoader)
 
         orderer_yaml_data["General"]["ListenPort"] = node.ListenPort
-        orderer_yaml_data["General"]["localMspId"] = node.Org.MSPID
-        orderer_yaml_data["Operations"]["listenAddress"] = node.OperationsListenAddress
+        orderer_yaml_data["General"]["LocalMSPID"] = node.Org.MSPID
+        orderer_yaml_data["Operations"]["ListenAddress"] = node.OperationsListenAddress
 
         # dump into target directory.
         target_file_path = os.path.join(node.Dir, "orderer.yaml")
@@ -52,6 +55,9 @@ class NodeBootstrapGenerator:
         os.system("cp %s %s" % (self.genesis_block_source, os.path.join(node.Dir, "genesis.block")))
         os.system("cp %s %s" % (self.binary, node.Dir))
         return daemon.config_daemon(node.Dir, node.process_label(), self.command)
+
+    def clear(self):
+        pass
 
     @staticmethod
     def check_config(node):
