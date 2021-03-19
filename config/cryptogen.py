@@ -84,7 +84,7 @@ class StaticOrganizationMspHolder:
     def node_tls(self, node_name):
         return os.path.join(self.org_nodes_dir, "%s.%s" % (node_name, self.Org.Domain), "tls")
 
-    def org_msp(self):
+    def msp_dir(self):
         return self.org_msp_dir
 
     def check(self):

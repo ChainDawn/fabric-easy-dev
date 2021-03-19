@@ -95,6 +95,9 @@ class Organization(BaseConfigModel):
 
         self.NodeMap = {node["Name"]: Node(self, **node) for node in self.Nodes}
 
+    def msp_dir(self):
+        return self.msp_source_holder.msp_dir()
+
     def add_node(self, *nodes):
         pass
 

@@ -36,8 +36,8 @@ class Network:
         if not os.path.exists(target_dir):
             os.system("mkdir -p %s" % target_dir)
 
-        with open(network_config, 'r') as config:
-            config_values = yaml.load(config, yaml.CLoader)
+        with open(network_config, 'r') as conf:
+            config_values = yaml.load(conf, yaml.CLoader)
 
         if KEY_ORGANIZATIONS not in config_values or len(config_values[KEY_ORGANIZATIONS]) == 0:
             raise Exception("No organization configuration found!!")
@@ -48,7 +48,7 @@ class Network:
         self.Organizations = {org["Name"]: Organization(target_dir, msp_support_impl, **org)
                               for org in config_values[KEY_ORGANIZATIONS]}
 
-        self.SysChannel = channel.SystemChannel(self.Organizations, **config_values[KEY_SYSTEM_CHANNEL])
+        self.SysChannel = channel.SystemChannel(target_dir, self.Organizations, **config_values[KEY_SYSTEM_CHANNEL])
 
     def deploy(self, interactive=False):
         pass

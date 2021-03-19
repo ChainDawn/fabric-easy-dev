@@ -44,8 +44,8 @@ def __channel_policies__():
 class SystemChannelProfile(yaml.YAMLObject):
 
     def __init__(self, sys_channel):
-        channel_orgs = [Organization(o.Name, o.MSPID, o.MspBaseDir) for o in sys_channel.Orgs]
-        self.Application = app = Application(channel_orgs)
+        channel_orgs = [Organization(o.Name, o.MSPID, o.msp_dir()) for o in sys_channel.Orgs]
+        self.Application = Application(channel_orgs)
         self.Capabilities = __channel_capabilities__()
         self.Consortiums = {"SimpleCOnsortiums": {"Organizations": channel_orgs}}
         etcdraft = EtcdRaft([Consenter(node) for node in sys_channel.Ords])
@@ -86,4 +86,19 @@ class ConfigTxSupport:
         profile_name = "%s-Profile" % channel.Name
         profile = SystemChannelProfile(channel) if is_sys else UserChannelProfile(channel)
         profiles = Profiles({profile_name: profile})
-        configtx_yaml = profiles.dump(os.path.join(target_dir, "%s-configtx.yaml" % channel.Name))
+        profiles.dump(os.path.join(target_dir, "configtx.yaml"))
+        if is_sys:
+            self.genesis_block(profile_name, channel.Name, target_dir, target_dir)
+        else:
+            pass
+
+    def genesis_block(self, profile_name, channel_name, config_dir, target_dir):
+        import subprocess
+        output = os.path.join(target_dir, "genesis.block")
+        if subprocess.call([self.cmd,
+                            "-profile", profile_name,
+                            "-channelID", channel_name,
+                            "-outputBlock", output,
+                            "-configPath", config_dir]) == 0:
+            return output
+

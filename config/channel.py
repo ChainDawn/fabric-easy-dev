@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import os
 from config.configtx import ConfigTxSupport
 from config import env
 
@@ -23,7 +24,7 @@ class SystemChannel(dict):
     def __getattr__(self, item):
         return self[item]
 
-    def __init__(self, orgs_map, **config):
+    def __init__(self, target_dir, orgs_map, **config):
         super(SystemChannel, self).__init__()
         self.update(config)
         self.Orgs = [orgs_map[name] for name in self.Organizations]
@@ -31,9 +32,10 @@ class SystemChannel(dict):
                      for ordorgs in self.Orderers
                      for org_name in ordorgs
                      for node_name in ordorgs[org_name]]
-        print(self.Ords)
-        tx_support = ConfigTxSupport()
-        tx_support.generate(self, env.CACHE_DIR, is_sys=True)
-
-    def create_genesis_block(self, generator, target_dir):
-        return generator.generate(self, target_dir)
+        self.Dir = os.path.join(target_dir, self.Name)
+        if not os.path.exists(self.Dir):
+            os.system("mkdir -p %s" % self.Dir)
+        self.GenesisBlock = os.path.join(self.Dir, "genesis.block")
+        if not os.path.exists(self.GenesisBlock):
+            tx_support = ConfigTxSupport()
+            tx_support.generate(self, self.Dir, is_sys=True)
