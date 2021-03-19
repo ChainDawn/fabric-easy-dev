@@ -15,12 +15,13 @@
 # limitations under the License.
 #
 import os
-import sys
+# import sys
 import yaml
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from config import peer, orderer, channel
 
-import config.channel
+# sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
 from config.organization import Organization
 from config.msp_support import static_msp_support
 
@@ -51,7 +52,16 @@ class Network:
         self.SysChannel = channel.SystemChannel(target_dir, self.Organizations, **config_values[KEY_SYSTEM_CHANNEL])
 
     def deploy(self, interactive=False):
-        pass
+        peer_config_generator = peer.NodeBootstrapGenerator()
+        orderer_config_generator = orderer.NodeBootstrapGenerator(self.SysChannel.GenesisBlock)
+        for org in self.SysChannel.Orgs:
+            org.deploy(peer_config_generator)
+        for ord in self.SysChannel.Ords:
+            ord.config(orderer_config_generator)
+
+        if interactive:
+            # TODO start interactive loop
+            pass
 
     def boot(self):
         pass

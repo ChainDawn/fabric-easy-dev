@@ -33,6 +33,12 @@ class Node(BaseConfigModel):
 
         self.Domain = "%s.%s" % (self.Name, self.Org.Domain)
         self.Address = "%s:%s" % (self.Domain, self.ListenPort)
+        self.ListenAddress = "0.0.0.0:%s" % self.ListenPort
+        self.OperationsListenAddress = "0.0.0.0:%s" % self.OperationsListenPort
+        try:
+            self.ChaincodeListenAddress = "0.0.0.0:%s" % self.ChaincodeListenPort
+        except KeyError:
+            pass
 
         self.Dir = os.path.join(organization.Dir, self.Name)
         if not os.path.exists(self.Dir):
@@ -95,6 +101,12 @@ class Organization(BaseConfigModel):
 
         self.NodeMap = {node["Name"]: Node(self, **node) for node in self.Nodes}
 
+    def deploy(self, generator):
+        for node_name in self.NodeMap:
+            node = self.NodeMap[node_name]
+            if node.Type == "peer":
+                node.config(generator)
+
     def msp_dir(self):
         return self.msp_source_holder.msp_dir()
 
@@ -102,7 +114,7 @@ class Organization(BaseConfigModel):
         pass
 
     def node_access_address(self, node_name):
-        pass
+        return self.NodeMap[node_name].Address
 
     def node_msp(self, node_name):
         return self.msp_source_holder.node_msp(node_name)

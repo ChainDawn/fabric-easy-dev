@@ -36,13 +36,13 @@ class NodeBootstrapGenerator:
         self.binary = orderer_binary
         self.command = "orderer"
 
-    def generate(self, node):
+    def config(self, node):
         with open(self.template, 'r') as template:
             orderer_yaml_data = yaml.load(template, yaml.CLoader)
 
         orderer_yaml_data["General"]["ListenPort"] = node.ListenPort
         orderer_yaml_data["General"]["localMspId"] = node.Org.MSPID
-        orderer_yaml_data["operations"]["listenAddress"] = node.OperationsListenAddress
+        orderer_yaml_data["Operations"]["listenAddress"] = node.OperationsListenAddress
 
         # dump into target directory.
         target_file_path = os.path.join(node.Dir, "orderer.yaml")
