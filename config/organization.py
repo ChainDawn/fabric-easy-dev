@@ -18,6 +18,7 @@ import os
 import subprocess
 from config import daemon
 
+import logging
 
 class BaseConfigModel(dict):
 
@@ -30,29 +31,40 @@ class Node(BaseConfigModel):
     def __init__(self, organization, **config):
         super().__init__()
         self.update(config)
-        self.Org = organization
 
+        self.logger = logging.getLogger("node")
+
+        self.Org = organization
         self.Domain = "%s.%s" % (self.Name, self.Org.Domain)
         self.Address = "%s:%s" % (self.Domain, self.ListenPort)
         self.ListenAddress = "0.0.0.0:%s" % self.ListenPort
         self.OperationsListenAddress = "0.0.0.0:%s" % self.OperationsListenPort
+
+        self.Dir = os.path.join(organization.Dir, self.Name)
+        self.MspDir = os.path.join(self.Dir, "msp")
+        self.TlsDir = os.path.join(self.Dir, "tls")
+
+        self.logger.info("Config node: %s.%s, type: %s" % (self.Org.Name, self.Name, self.Type))
+        self.logger.debug("\tNode directory: %s" % self.Dir)
+        self.logger.debug("\tNode domain: %s" % self.Domain)
+        self.logger.debug("\tNode listen port: %s" % self.ListenPort)
+        self.logger.debug("\tNode operations address: %s" % self.OperationsListenAddress)
+
         try:
             self.ChaincodeListenAddress = "0.0.0.0:%s" % self.ChaincodeListenPort
+            self.logger.debug("\tNode chaincode listen port: %s" % self.ChaincodeListenPort)
         except KeyError:
             pass
 
-        self.Dir = os.path.join(organization.Dir, self.Name)
         if not os.path.exists(self.Dir):
             subprocess.call(["mkdir", "-p", self.Dir])
 
-        self.MspDir = os.path.join(self.Dir, "msp")
         if not os.path.exists(self.MspDir):
             node_msp_source = self.Org.node_msp(self.Name)
             if not os.path.exists(node_msp_source):
                 raise Exception("Node msp directory not exists: %s" % node_msp_source)
             os.system("cp -r %s %s" % (node_msp_source, self.MspDir))
 
-        self.TlsDir = os.path.join(self.Dir, "tls")
         if not os.path.exists(self.TlsDir):
             node_tls_source = self.Org.node_tls(self.Name)
             if not os.path.exists(node_tls_source):
@@ -96,6 +108,8 @@ class Organization(BaseConfigModel):
         super().__init__()
         self.update(values)
 
+        self.logger = logging.getLogger("organization")
+
         if not os.path.exists(target_dir):
             raise ValueError("target_dir not exists: %s" % target_dir)
         self.Dir = os.path.join(target_dir, self.Name)
@@ -104,6 +118,10 @@ class Organization(BaseConfigModel):
 
         self.MspBaseDir = os.path.join(self.Dir, self.MSPID)
         self.msp_generator, self.msp_source_holder = msp_support(self)
+
+        self.logger.info("Config organization: %s, mspid: %s" % (self.Name, self.MSPID))
+        self.logger.debug("\tOrganization directory: %s" % self.Dir)
+        self.logger.debug("\tOrganization msp directory: %s" % self.MspBaseDir)
 
         if not os.path.exists(self.MspBaseDir):
             self.msp_generator.generate(self)

@@ -15,15 +15,14 @@
 # limitations under the License.
 #
 import os
-# import sys
 import yaml
 
 from config import peer, orderer, channel
-
-# sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-
 from config.organization import Organization
 from config.msp_support import static_msp_support
+
+import logging
+logger = logging.getLogger("config")
 
 KEY_ORGANIZATIONS = "Organizations"
 KEY_SYSTEM_CHANNEL = "SystemChannel"
