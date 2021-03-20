@@ -49,9 +49,9 @@ General:
         SendBufferSize: 10
         # ClientCertificate governs the file location of the client TLS certificate
         # used to establish mutual TLS connections with other ordering service nodes.
-        ClientCertificate:
+        ClientCertificate: tls/server.crt
         # ClientPrivateKey governs the file location of the private key of the client TLS certificate.
-        ClientPrivateKey:
+        ClientPrivateKey: tls/server.key
         # The below 4 properties should be either set together, or be unset together.
         # If they are set, then the orderer node uses a separate listener for intra-cluster
         # communication. If they are unset, then the general orderer listener is used.

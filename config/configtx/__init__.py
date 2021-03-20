@@ -47,10 +47,10 @@ class SystemChannelProfile(yaml.YAMLObject):
         channel_orgs = [Organization(o.Name, o.MSPID, o.msp_dir()) for o in sys_channel.Orgs]
         self.Application = Application(channel_orgs)
         self.Capabilities = __channel_capabilities__()
-        self.Consortiums = {"SimpleCOnsortiums": {"Organizations": channel_orgs}}
+        self.Consortiums = {"SimpleConsortiums": {"Organizations": channel_orgs}}
         etcdraft = EtcdRaft([Consenter(node) for node in sys_channel.Ords])
         addresses = [node.Address for node in sys_channel.Ords]
-        self.Orderer = Orderer(etcdraft, addresses)
+        self.Orderer = Orderer(etcdraft, addresses, channel_orgs)
         self.Policies = __channel_policies__()
 
 

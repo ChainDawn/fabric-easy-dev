@@ -57,7 +57,7 @@ class EtcdRaft(yaml.YAMLObject):
 
 class Orderer(yaml.YAMLObject):
 
-    def __init__(self, etcdraft, addresses):
+    def __init__(self, etcdraft, addresses, channel_orgs):
         self.OrdererType = "etcdraft"
         self.Addresses = addresses
         self.BatchTimeout = "2s"
@@ -68,6 +68,6 @@ class Orderer(yaml.YAMLObject):
         }
         self.MaxChannels = 0
         self.EtcdRaft = etcdraft
-        self.Organizations = None
+        self.Organizations = channel_orgs
         self.Capabilities = __capabilities__()
         self.Policies = __policies__()
