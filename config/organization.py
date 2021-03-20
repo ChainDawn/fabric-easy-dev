@@ -16,6 +16,7 @@
 #
 import os
 import subprocess
+from config import daemon
 
 
 class BaseConfigModel(dict):
@@ -61,6 +62,21 @@ class Node(BaseConfigModel):
         if self.Type != "peer" and self.Type != "orderer":
             raise ValueError("Error node type: %s", self.Type)
 
+        try:
+            self.node_process_handler = daemon.NodeProcessHandler(self.Dir, self.process_label())
+        except ValueError:
+            pass
+
+    def boot(self):
+        if self.node_process_handler is None:
+            raise ValueError("Your node maybe not config. %s" % self.Dir)
+        self.node_process_handler.boot_node()
+
+    def stop(self):
+        if self.node_process_handler is None:
+            raise ValueError("Your node maybe not config. %s" % self.Dir)
+        self.node_process_handler.stop_node()
+
     def gossip_bootstrap_address(self):
         return self.Org.node_access_address(self.GossipBootStrapNode)
 
@@ -68,7 +84,7 @@ class Node(BaseConfigModel):
         return "%s-%s-%s" % (self.Org.Name, self.Type, self.Name)
 
     def config(self, bootstrap_config_generator, force_rebuild=False):
-        bootstrap_config_generator.config(self, force_rebuild)
+        self.node_process_handler = bootstrap_config_generator.config(self, force_rebuild)
 
     def server_tls_cert(self):
         return self.Org.node_server_tls_cert(self.Name)
@@ -106,6 +122,18 @@ class Organization(BaseConfigModel):
             node = self.NodeMap[node_name]
             if node.Type == "peer":
                 node.config(generator)
+
+    def boot_peers(self):
+        for node_name in self.NodeMap:
+            node = self.NodeMap[node_name]
+            if node.Type == "peer":
+                node.boot()
+
+    def stop_peers(self):
+        for node_name in self.NodeMap:
+            node = self.NodeMap[node_name]
+            if node.Type == "peer":
+                node.stop()
 
     def msp_dir(self):
         return self.msp_source_holder.msp_dir()

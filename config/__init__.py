@@ -64,10 +64,20 @@ class Network:
             pass
 
     def boot(self):
-        pass
+        for org in self.SysChannel.Orgs:
+            org.boot_peers()
+        for ord in self.SysChannel.Ords:
+            ord.boot()
+        os.system("ps -ef | grep peer")
+        os.system("ps -ef | grep orderer")
 
     def stop(self):
-        pass
+        for org in self.SysChannel.Orgs:
+            org.stop_peers()
+        for ord in self.SysChannel.Ords:
+            ord.stop()
+        os.system("ps -ef | grep peer")
+        os.system("ps -ef | grep orderer")
 
     def clear(self):
         pass

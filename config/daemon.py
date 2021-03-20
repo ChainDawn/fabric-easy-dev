@@ -24,23 +24,35 @@ DAEMON_CONFIG_SCRIPT = os.path.join(env.PROJECT_HOME, "scripts", "daemon-support
 
 class NodeProcessHandler:
 
-    def __init__(self, target_dir, process_label):
-        pass
+    def __init__(self, node_dir, process_label):
+        if not os.path.exists(node_dir):
+            raise ValueError("Node directory not exists: %s" % node_dir)
+        self.node_dir = node_dir
+        self.process_label = process_label
+        self.node_boot_script = os.path.join(self.node_dir, "boot.sh")
+        if not os.path.exists(self.node_boot_script):
+            raise ValueError("Node boot script not exist: %s" % self.node_boot_script)
+        self.node_stop_script = os.path.join(self.node_dir, "stop.sh")
+        if not os.path.exists(self.node_stop_script):
+            raise ValueError("Node stop script not exist: %s" % self.node_stop_script)
+        self.node_log_file = os.path.join(self.node_dir, "%s.log" % process_label)
+        self.node_pid_file = os.path.join(self.node_dir, "pid")
+        self.node_started = False
+        if os.path.exists(self.node_pid_file) and \
+                os.system("ps -ef | grep $(cat %s)" % self.node_pid_file) == 0:
+            self.node_started = True
 
     def boot_node(self):
-        pass
+        if self.node_started:
+            return
+        print("starting peer: %s" % self.process_label)
+        self.node_started = subprocess.call([self.node_boot_script]) == 0
 
     def stop_node(self):
-        pass
-
-    def check_node_process(self):
-        pass
-
-    def node_pid(self):
-        pass
-
-    def node_log_file(self):
-        pass
+        if not self.node_started:
+            return
+        print("stopping peer: %s" % self.process_label)
+        self.node_started = not subprocess.call([self.node_stop_script]) == 0
 
 
 def config_daemon(target_dir, process_label, command, daemon_type="nodaemon"):
