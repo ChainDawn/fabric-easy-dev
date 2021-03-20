@@ -20,6 +20,7 @@ from config import daemon
 
 import logging
 
+
 class BaseConfigModel(dict):
 
     def __getattr__(self, item):

@@ -17,6 +17,7 @@
 import os
 import subprocess
 import yaml
+import logging
 
 from config import env
 
@@ -34,19 +35,25 @@ class CryptoGenerator(yaml.YAMLObject):
 
     def __init__(self):
         self.PeerOrgs = None
+        self.logger = logging.getLogger("cryptogen")
 
     def generate(self, org):
+        self.logger.info("Generate msp for organization: %s" % org.Name)
         return self.__execute__(org, "generate")
 
     def extend(self, org):
+        self.logger.info("Extend msp for organization: %s" % org.Name)
         return self.__execute__(org, "extend")
 
     def __execute__(self, org, sub_command, cryptogen=env.CRYPTOGEN):
         if org.Dir is None or not os.path.exists(org.Dir):
             raise ValueError("Organization working directory not exists: %s" % org.Dir)
 
+        self.logger.debug("\tCryptogen binary: %s" % cryptogen)
         self.PeerOrgs = [CryptoConfigItem(org)]
         crypto_config_file = self.__dump__(org.Dir, org.MSPID)
+        self.logger.debug("\tCrypto config file: %s" % crypto_config_file)
+        self.logger.debug("\tTarget directory: %s" % crypto_config_file)
         command = [
             cryptogen, sub_command,
             "--config=%s" % crypto_config_file,
