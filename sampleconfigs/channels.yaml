@@ -1,0 +1,6 @@
+UserChannels:
+  easy-user-channel:
+    Name: easy-user-channel
+    Organizations:
+      - Org1
+      - Org2
