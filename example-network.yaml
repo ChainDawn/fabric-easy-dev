@@ -75,3 +75,10 @@ SystemChannel:
     - Org2:
         - orderer20
         - orderer21
+
+UserChannels:
+  easy-user-channel:
+    Name: easy-user-channel
+    Organizations:
+      - Org1
+      - Org2

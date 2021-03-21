@@ -90,7 +90,7 @@ class ConfigTxSupport:
         if is_sys:
             self.genesis_block(profile_name, channel.Name, target_dir, target_dir)
         else:
-            pass
+            self.channel_tx(profile_name, channel.Name, target_dir, target_dir)
 
     def genesis_block(self, profile_name, channel_name, config_dir, target_dir):
         import subprocess
@@ -102,3 +102,5 @@ class ConfigTxSupport:
                             "-configPath", config_dir]) == 0:
             return output
 
+    def channel_tx(self, profile_name, channel_name, config_dir, target_dir):
+        pass

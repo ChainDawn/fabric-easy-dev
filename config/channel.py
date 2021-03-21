@@ -14,9 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import os
+import os, logging
 from config.configtx import ConfigTxSupport
-from config import env
 
 
 class SystemChannel(dict):
@@ -27,15 +26,42 @@ class SystemChannel(dict):
     def __init__(self, target_dir, orgs_map, **config):
         super(SystemChannel, self).__init__()
         self.update(config)
+
+        self.Dir = os.path.join(target_dir, self.Name)
+        if not os.path.exists(self.Dir):
+            os.system("mkdir -p %s" % self.Dir)
+
         self.Orgs = [orgs_map[name] for name in self.Organizations]
         self.Ords = [orgs_map[org_name].NodeMap[node_name]
                      for ordorgs in self.Orderers
                      for org_name in ordorgs
                      for node_name in ordorgs[org_name]]
-        self.Dir = os.path.join(target_dir, self.Name)
-        if not os.path.exists(self.Dir):
-            os.system("mkdir -p %s" % self.Dir)
+
         self.GenesisBlock = os.path.join(self.Dir, "genesis.block")
         if not os.path.exists(self.GenesisBlock):
             tx_support = ConfigTxSupport()
             tx_support.generate(self, self.Dir, is_sys=True)
+
+
+class UserChannel(dict):
+
+    def __getattr__(self, item):
+        return self[item]
+
+    def __init__(self, target_dir, orgs_map, **config):
+        super(UserChannel, self).__init__()
+        self.update(config)
+        self.logger = logging.getLogger("channel")
+
+        self.logger.info("Config user channel: %s" % self.Name)
+
+        self.Dir = os.path.join(target_dir, self.Name)
+        if not os.path.exists(self.Dir):
+            os.system("mkdir -p %s" % self.Dir)
+
+        self.logger.debug("\tChannel directory: %s" % self.Dir)
+
+        self.Orgs = [orgs_map[name] for name in self.Organizations]
+
+    def deploy(self):
+        pass

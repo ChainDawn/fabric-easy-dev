@@ -34,3 +34,4 @@ if __name__ == '__main__':
     network = Network(network_config_file, network_target_directory)
     # network.deploy()
     # network.boot()
+    network.deploy_channel(network_config_file, "easy-user-channel")
