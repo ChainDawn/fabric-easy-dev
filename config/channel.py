@@ -40,7 +40,7 @@ class SystemChannel(dict):
         self.GenesisBlock = os.path.join(self.Dir, "genesis.block")
         if not os.path.exists(self.GenesisBlock):
             tx_support = ConfigTxSupport()
-            tx_support.generate(self, self.Dir, is_sys=True)
+            tx_support.generate_syschannel_genesis_block(self, self.Dir)
 
 
 class UserChannel(dict):
@@ -62,6 +62,10 @@ class UserChannel(dict):
         self.logger.debug("\tChannel directory: %s" % self.Dir)
 
         self.Orgs = [orgs_map[name] for name in self.Organizations]
+        self.CreateTx = os.path.join(self.Dir, "%s.tx" % self.Name)
+        if not os.path.exists(self.CreateTx):
+            tx_support = ConfigTxSupport()
+            self.CreateTx = tx_support.generate_create_channel_tx(self, self.Dir)
 
     def deploy(self):
         pass

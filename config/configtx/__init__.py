@@ -14,11 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import os
-import sys
-
-sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
-
+import os, subprocess
 import yaml
 from config import env
 from config.configtx.policy import Policy
@@ -56,10 +52,10 @@ class SystemChannelProfile(yaml.YAMLObject):
 
 class UserChannelProfile(yaml.YAMLObject):
 
-    def __init__(self, _application, _consortium):
-        self.Application = _application
+    def __init__(self, user_channel):
+        self.Application = Application([Organization(o.Name, o.MSPID, o.msp_dir()) for o in user_channel.Orgs])
         self.Capabilities = __channel_capabilities__()
-        self.Consortium = _consortium
+        self.Consortium = "SimpleConsortiums"
         self.Policies = __channel_policies__()
 
 
@@ -79,28 +75,28 @@ class ConfigTxSupport:
     def __init__(self, configtxgen=env.CONFIGTXGEN):
         self.cmd = configtxgen
 
-    def generate(self, channel, target_dir, is_sys=False):
+    def generate_syschannel_genesis_block(self, channel, target_dir):
         if not os.path.exists(target_dir):
-            raise ValueError("Target directory not exists: %s" % target_dir)
+            raise ValueError("Con directory not exists: %s" % target_dir)
 
-        profile_name = "%s-Profile" % channel.Name
-        profile = SystemChannelProfile(channel) if is_sys else UserChannelProfile(channel)
-        profiles = Profiles({profile_name: profile})
+        profile_name = "%s-Genesis-Profile" % channel.Name
+        profiles = Profiles({profile_name: SystemChannelProfile(channel)})
         profiles.dump(os.path.join(target_dir, "configtx.yaml"))
-        if is_sys:
-            self.genesis_block(profile_name, channel.Name, target_dir, target_dir)
-        else:
-            self.channel_tx(profile_name, channel.Name, target_dir, target_dir)
 
-    def genesis_block(self, profile_name, channel_name, config_dir, target_dir):
-        import subprocess
         output = os.path.join(target_dir, "genesis.block")
-        if subprocess.call([self.cmd,
-                            "-profile", profile_name,
-                            "-channelID", channel_name,
-                            "-outputBlock", output,
-                            "-configPath", config_dir]) == 0:
+        if subprocess.call([self.cmd, "-profile", profile_name, "-channelID", channel.Name, "-outputBlock", output,
+                            "-configPath", target_dir]) == 0:
             return output
 
-    def channel_tx(self, profile_name, channel_name, config_dir, target_dir):
-        pass
+    def generate_create_channel_tx(self, channel, target_dir):
+        if not os.path.exists(target_dir):
+            raise ValueError("Con directory not exists: %s" % target_dir)
+
+        profile_name = "%s-CreateChannel-Profile" % channel.Name
+        profiles = Profiles({profile_name: UserChannelProfile(channel)})
+        profiles.dump(os.path.join(target_dir, "configtx.yaml"))
+
+        output = os.path.join(target_dir, "%s.tx" % channel.Name)
+        if subprocess.call([self.cmd, "-profile", profile_name, "-channelID", channel.Name,
+                            "-outputCreateChannelTx", output, "-configPath", target_dir]) == 0:
+            return output
