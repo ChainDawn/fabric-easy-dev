@@ -1,0 +1,30 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+###############################################################################
+#
+#    Peer section
+#
+###############################################################################
+peer:
+    # TLS Settings
+    tls:
+        # Require server-side TLS
+        enabled:  true
+        # Trusted root certificate chain for tls.cert
+        rootcert:
+            file: tls/ca.crt
+
+    # Path on the file system where peer will find MSP local configurations
+    mspConfigPath: msp
+
+    # Identifier of the local MSP
+    # ----!!!!IMPORTANT!!!-!!!IMPORTANT!!!-!!!IMPORTANT!!!!----
+    # Deployers need to change the value of the localMspId string.
+    # In particular, the name of the local MSP ID of a peer needs
+    # to match the name of one of the MSPs in each of the channel
+    # that this peer is a member of. Otherwise this peer's messages
+    # will not be identified as valid by other nodes.
+    localMspId: Org1MSP
