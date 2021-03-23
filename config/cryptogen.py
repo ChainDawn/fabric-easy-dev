@@ -82,8 +82,8 @@ class StaticOrganizationMspHolder:
         self.org_msp_dir = os.path.join(self.org_crypto_dir, "msp")
         self.org_ca_dir = os.path.join(self.org_crypto_dir, "ca")
         self.org_nodes_dir = os.path.join(self.org_crypto_dir, "peers")
-        self.org_tlsca_dir = os.path.join(self.org_nodes_dir, "tlsca")
-        self.org_users_dir = os.path.join(self.org_nodes_dir, "users")
+        self.org_tlsca_dir = os.path.join(self.org_crypto_dir, "tlsca")
+        self.org_users_dir = os.path.join(self.org_crypto_dir, "users")
 
     def node_msp(self, node_name):
         return os.path.join(self.org_nodes_dir, "%s.%s" % (node_name, self.Org.Domain), "msp")
@@ -99,3 +99,9 @@ class StaticOrganizationMspHolder:
 
     def node_server_tls_cert(self, node_name):
         return os.path.join(self.org_nodes_dir, "%s.%s" % (node_name, self.Org.Domain), "tls", "server.crt")
+
+    def admin_msp(self):
+        return os.path.join(self.org_users_dir, "Admin@%s" % self.Org.Domain, "msp")
+
+    def tlsca(self):
+        return os.path.join(self.org_tlsca_dir, "tlsca.%s-cert.pem" % self.Org.Domain)

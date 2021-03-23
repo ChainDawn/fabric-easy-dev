@@ -160,6 +160,12 @@ class Organization(BaseConfigModel):
     def add_node(self, *nodes):
         pass
 
+    def admin_msp(self):
+        return self.msp_source_holder.admin_msp()
+
+    def tlsca(self):
+        return self.msp_source_holder.tlsca()
+
     def node_access_address(self, node_name):
         return self.NodeMap[node_name].Address
 
