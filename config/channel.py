@@ -16,6 +16,7 @@
 #
 import os, logging
 from config.configtx import ConfigTxSupport
+from api import cliapi
 
 
 class SystemChannel(dict):
@@ -62,10 +63,9 @@ class UserChannel(dict):
         self.logger.debug("\tChannel directory: %s" % self.Dir)
 
         self.Orgs = [orgs_map[name] for name in self.Organizations]
-        self.CreateTx = os.path.join(self.Dir, "%s.tx" % self.Name)
-        if not os.path.exists(self.CreateTx):
-            tx_support = ConfigTxSupport()
-            self.CreateTx = tx_support.generate_create_channel_tx(self, self.Dir)
 
-    def deploy(self):
-        pass
+    def deploy(self, api_config):
+        tx_support = ConfigTxSupport()
+        tx = tx_support.generate_create_channel_tx(self, self.Dir)
+        channel_api = cliapi.CliChannelApi(self)
+        channel_api.create(api_config, tx)

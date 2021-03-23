@@ -76,9 +76,17 @@ SystemChannel:
         - orderer20
         - orderer21
 
+ApiConfig:
+  Peers:
+    - Name: peer10
+      Org: Org1
+  Orderer:
+    Name: orderer10
+    Org: Org1
+
 UserChannels:
-  easy-user-channel:
-    Name: easy-user-channel
+  easy-dev-user-channel:
+    Name: easy-dev-user-channel
     Organizations:
       - Org1
       - Org2

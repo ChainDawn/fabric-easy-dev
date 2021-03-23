@@ -163,11 +163,17 @@ class Organization(BaseConfigModel):
     def admin_msp(self):
         return self.msp_source_holder.admin_msp()
 
+    def admin_tls(self):
+        return self.msp_source_holder.admin_tls()
+
     def tlsca(self):
         return self.msp_source_holder.tlsca()
 
     def node_access_address(self, node_name):
         return self.NodeMap[node_name].Address
+
+    def node(self, node_name):
+        return self.NodeMap[node_name]
 
     def node_msp(self, node_name):
         return self.msp_source_holder.node_msp(node_name)

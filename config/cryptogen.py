@@ -103,5 +103,8 @@ class StaticOrganizationMspHolder:
     def admin_msp(self):
         return os.path.join(self.org_users_dir, "Admin@%s" % self.Org.Domain, "msp")
 
+    def admin_tls(self):
+        return os.path.join(self.org_users_dir, "Admin@%s" % self.Org.Domain, "tls")
+
     def tlsca(self):
         return os.path.join(self.org_tlsca_dir, "tlsca.%s-cert.pem" % self.Org.Domain)

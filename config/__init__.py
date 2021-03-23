@@ -16,6 +16,7 @@
 #
 import os
 import yaml
+import api
 
 from config import peer, orderer, channel
 from config.organization import Organization
@@ -27,6 +28,7 @@ logger = logging.getLogger("config")
 KEY_ORGANIZATIONS = "Organizations"
 KEY_SYSTEM_CHANNEL = "SystemChannel"
 KEY_USER_CHANNEL = "UserChannels"
+KEY_API_CONFIG = "ApiConfig"
 
 
 class Network:
@@ -51,6 +53,9 @@ class Network:
                               for org in config_values[KEY_ORGANIZATIONS]}
 
         self.SysChannel = channel.SystemChannel(self.Dir, self.Organizations, **config_values[KEY_SYSTEM_CHANNEL])
+
+        if KEY_API_CONFIG in config_values:
+            self.ApiConfig = api.ApiConfig(self.Organizations, **config_values[KEY_API_CONFIG])
 
     def deploy(self, interactive=False):
         peer_config_generator = peer.NodeBootstrapGenerator()
@@ -83,7 +88,7 @@ class Network:
             raise ValueError("No channel name fond in channel config: %s" % channel_name)
         user_channel = channel.UserChannel(
             self.Dir, self.Organizations, **channel_config[KEY_USER_CHANNEL][channel_name])
-        user_channel.deploy()
+        user_channel.deploy(self.ApiConfig)
 
     def stop(self):
         for org in self.SysChannel.Orgs:
