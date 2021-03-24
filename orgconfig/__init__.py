@@ -17,7 +17,27 @@
 import logging
 import os
 import yaml
-from mspconfig.msp import static_msp_support
+from orgconfig.msp import static_msp_support
+from orgconfig.deploy import deploy_builder
+
+KEY_ORGANIZATIONS = "Organizations"
+KEY_PEERS = "Peers"
+KEY_ORDERERS = "Orderers"
+KEY_NAME = "Name"
+
+
+class Node(dict):
+
+    def __getattr__(self, item):
+        return self[item]
+
+    def __init__(self, org, msp_holder, deploy_build, **values):
+        super(Node, self).__init__()
+        self.update(values)
+        self.Org = org
+        self.Domain = "%s.%s" % (self.Name, self.Org.Domain)
+        self.msp_holder = msp_holder
+        self.deploy_handler = deploy_build(self, self.Org.Dir)
 
 
 class Organization(dict):
@@ -42,8 +62,11 @@ class Organization(dict):
 
         self.msp_support.create_msp()
 
-
-KEY_ORGANIZATIONS = "Organizations"
+        msp_holder = self.msp_support.msp_holder
+        self.PeerNodes = {n[KEY_NAME]: Node(self, msp_holder.node_msp_holder(n[KEY_NAME]), deploy_builder("Peer"), **n)
+                          for n in self.Peers}
+        self.OrdererNodes = {o[KEY_NAME]: Node(self, msp_holder.node_msp_holder(o[KEY_NAME]), deploy_builder("Orderer"), **o)
+                             for o in self.Orderers}
 
 
 def config_organizations(config_file, target_dir):

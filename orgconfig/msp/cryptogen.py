@@ -27,7 +27,8 @@ class CryptoConfigItem(yaml.YAMLObject):
     def __init__(self, organization):
         self.Name = organization.MSPID
         self.Domain = organization.Domain
-        self.Specs = [{"Hostname": node} for node in organization.Nodes]
+        nodes = organization.Peers + organization.Orderers
+        self.Specs = [{"Hostname": node["Name"]} for node in nodes]
 
 
 class CryptoGenerator(yaml.YAMLObject):
@@ -36,31 +37,35 @@ class CryptoGenerator(yaml.YAMLObject):
         self.PeerOrgs = None
         self.logger = logging.getLogger("cryptogen")
 
-    def generate(self, msp_support):
+    def generate(self, msp_support, cryptogen=env.CRYPTOGEN):
         self.logger.info("Generate msp for organization: %s" % msp_support.org.Name)
-        return self.__execute__(msp_support.org, "generate", msp_support.config_cache_dir, msp_support.Dir)
 
-    def extend(self, msp_support):
-        self.logger.info("Extend msp for organization: %s" % msp_support.org.Name)
-        return self.__execute__(msp_support.org, "extend", msp_support.config_cache_dir, msp_support.Dir)
-
-    def __execute__(self, org, sub_command, config_cache_dir, output_dir, cryptogen=env.CRYPTOGEN):
         self.logger.debug("\tCryptogen binary: %s" % cryptogen)
-        self.PeerOrgs = [CryptoConfigItem(org)]
-
-        crypto_config_file = self.__dump__(config_cache_dir, org.MSPID)
+        crypto_config_file = self.__dump__(msp_support)
         self.logger.debug("\tCrypto config file: %s" % crypto_config_file)
         self.logger.debug("\tTarget directory: %s" % crypto_config_file)
 
-        command = [cryptogen, sub_command, "--config=%s" % crypto_config_file, "--input=%s" % output_dir]
+        command = [cryptogen, "generate", "--config=%s" % crypto_config_file, "--output=%s" % msp_support.Dir]
         if subprocess.call(command) != 0:
             raise Exception("Execute command error!")
 
-    def __dump__(self, cache_dir, name):
-        target_file = os.path.join(cache_dir, "%s-crypto-config.yaml" % name)
+    def extend(self, msp_support, cryptogen=env.CRYPTOGEN):
+        self.logger.info("Extend msp for organization: %s" % msp_support.org.Name)
+        self.logger.debug("\tCryptogen binary: %s" % cryptogen)
+        crypto_config_file = self.__dump__(msp_support)
+        self.logger.debug("\tCrypto config file: %s" % crypto_config_file)
+        self.logger.debug("\tTarget directory: %s" % crypto_config_file)
+
+        command = [cryptogen, "extend", "--config=%s" % crypto_config_file, "--input=%s" % msp_support.Dir]
+        if subprocess.call(command) != 0:
+            raise Exception("Execute command error!")
+
+    def __dump__(self, msp_support):
+        self.PeerOrgs = [CryptoConfigItem(msp_support.org)]
+        target_file = os.path.join(msp_support.config_cache_dir, "%s-crypto.yaml" % msp_support.org.MSPID)
         index = 1
         while os.path.exists(target_file):
-            target_file = os.path.join(cache_dir, "%s-crypto-config-%s.yaml" % (name, index))
+            target_file = os.path.join(msp_support.config_cache_dir, "%s-crypto-%s.yaml" % (msp_support.org.MSPID, index))
             index = index + 1
 
         with open(target_file, "w") as target:
@@ -68,12 +73,28 @@ class CryptoGenerator(yaml.YAMLObject):
         return target_file
 
 
+class StubMspHolder:
+
+    def __init__(self, name, org_domain, base_dir):
+        self.Name = name
+        self.OrgDomain = org_domain
+        self.Dir = base_dir
+        if not os.path.exists(self.Dir):
+            raise ValueError("Msp holder directory not exists: %s" % self.Dir)
+
+    def msp_dir(self):
+        return os.path.join(self.Dir, "")
+
+    def tls_dir(self):
+        return os.path.join(self.Dir, "tls")
+
+
 class StaticOrganizationMspHolder:
 
     def __init__(self, org_domain, msp_dir):
         self.org_domain = org_domain
         self.org_crypto_dir = os.path.join(msp_dir, "peerOrganizations", self.org_domain)
-        self.org_msp_dir = os.path.join(self.org_crypto_dir, "msp")
+        self.org_msp_dir = os.path.join(self.org_crypto_dir, "")
         self.org_ca_dir = os.path.join(self.org_crypto_dir, "ca")
         self.org_nodes_dir = os.path.join(self.org_crypto_dir, "peers")
         self.org_tlsca_dir = os.path.join(self.org_crypto_dir, "tlsca")
@@ -89,26 +110,17 @@ class StaticOrganizationMspHolder:
                 return False
         return True
 
-    def node_msp(self, node_name):
-        return os.path.join(self.org_nodes_dir, "%s.%s" % (node_name, self.org_domain), "msp")
+    def node_msp_holder(self, node_name):
+        node_msp_dir = os.path.join(self.org_nodes_dir, "%s.%s" % (node_name, self.org_domain))
+        if not os.path.exists(node_msp_dir):
+            raise Exception("Node not found: %s" % node_name)
+        return StubMspHolder(node_name, self.org_domain, node_msp_dir)
 
-    def node_tls(self, node_name):
-        return os.path.join(self.org_nodes_dir, "%s.%s" % (node_name, self.org_domain), "tls")
-
-    def msp_dir(self):
-        return self.org_msp_dir
-
-    def node_server_tls_cert(self, node_name):
-        return os.path.join(self.org_nodes_dir, "%s.%s" % (node_name, self.org_domain.Domain), "tls", "server.crt")
-
-    def admin_msp(self):
-        return os.path.join(self.org_users_dir, "Admin@%s" % self.org_domain, "msp")
-
-    def admin_tls(self):
-        return os.path.join(self.org_users_dir, "Admin@%s" % self.org_domain, "tls")
-
-    def tlsca(self):
-        return os.path.join(self.org_tlsca_dir, "tlsca.%s-cert.pem" % self.org_domain)
+    def admin_msp_holder(self):
+        user_msp_dir = os.path.join(self.org_users_dir, "Admin@%s" % self.org_domain)
+        if not os.path.exists(user_msp_dir):
+            raise Exception("User not found: %s" % "Admin")
+        return StubMspHolder("Admin", self.org_domain, user_msp_dir)
 
 
 class StaticMspSupport:

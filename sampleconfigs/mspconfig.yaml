@@ -17,16 +17,32 @@ Organizations:
   - Name: Org1
     MSPID: Org1MSP
     Domain: org1.fnodocker.icu
-    Nodes:
-      - peer10
-      - peer11
-      - orderer10
-      - orderer11
+    Peers:
+      - Name: peer0
+        Ports: 7051, 9443, 7052
+        GossipNode: peer1
+      - Name: peer1
+        Ports: 8051, 10443, 8052
+        GossipNode: peer0
+    Orderers:
+      - Name: orderer0
+        Ports: 7050, 9444
+      - Name: orderer1
+        Ports: 8050, 10444
   - Name: Org2
     MSPID: Org2MSP
     Domain: org2.fnodocker.icu
-    Nodes:
-      - peer20
-      - peer21
-      - orderer20
-      - orderer21
+    Peers:
+      - Name: peer0
+        Ports: 9051, 11443, 9052
+        GossipNode: peer1
+      - Name: peer1
+        Ports: 10051, 12443, 10052
+        GossipNode: peer0
+    Orderers:
+      - Name: orderer0
+        Ports: 9050, 11444
+      - Name: orderer1
+        Ports: 10050, 12444
+      - Name: orderer2
+        Ports: 11050, 13444

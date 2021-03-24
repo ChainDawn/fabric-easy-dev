@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from mspconfig import cryptogen
+from orgconfig.msp import cryptogen
 
 
 def static_msp_support(organization):
