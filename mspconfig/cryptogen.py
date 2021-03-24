@@ -52,7 +52,7 @@ class CryptoGenerator(yaml.YAMLObject):
         self.logger.debug("\tCrypto config file: %s" % crypto_config_file)
         self.logger.debug("\tTarget directory: %s" % crypto_config_file)
 
-        command = [cryptogen, sub_command, "--config=%s" % crypto_config_file, "--output=%s" % output_dir]
+        command = [cryptogen, sub_command, "--config=%s" % crypto_config_file, "--input=%s" % output_dir]
         if subprocess.call(command) != 0:
             raise Exception("Execute command error!")
 
