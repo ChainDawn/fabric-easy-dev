@@ -15,19 +15,22 @@
 # limitations under the License.
 #
 import os
+import env
+from orgconfig.deploy.nodeconfig import config_core_yaml, config_orderer_yaml
 
 
 class NodeDeployHandler:
 
     def __init__(self, node, deploy_dir):
-        self.Dir = os.path.join(deploy_dir, node.Name)
+        self.Node = node
+        self.Dir = os.path.join(deploy_dir, self.Node.Name)
         if not os.path.exists(self.Dir):
             os.system("mkdir -p %s" % self.Dir)
 
         self.msp_dir = os.path.join(self.Dir, "msp")
         self.tls_dir = os.path.join(self.Dir, "tls")
-        os.system("cp -r %s %s" % (node.msp_holder.msp_dir(), self.msp_dir))
-        os.system("cp -r %s %s" % (node.msp_holder.tls_dir(), self.tls_dir))
+        os.system("cp -r %s %s" % (self.Node.msp_holder.msp_dir(), self.msp_dir))
+        os.system("cp -r %s %s" % (self.Node.msp_holder.tls_dir(), self.tls_dir))
 
     def __init_basic_addresses__(self, domain, listen_port, operations_port):
         self.Address = "%s:%s" % (domain, listen_port)
@@ -40,8 +43,14 @@ class PeerDeployHandler(NodeDeployHandler):
     def __init__(self, node, deploy_dir):
         super().__init__(node, deploy_dir)
         self.ListenPort, self.OperationsPort, self.ChaincodePort = str(node.Ports).split(", ")
-        self.__init_basic_addresses__(node.Domain, self.ListenPort, self.OperationsPort)
+        self.__init_basic_addresses__(self.Node.Domain, self.ListenPort, self.OperationsPort)
         self.ChaincodeListenAddress = "0.0.0.0:%s" % self.ChaincodePort
+
+    def deploy(self, peer_binary=env.PEER):
+        config_core_yaml(self)
+
+    def gossip_bootstrap_address(self):
+        return self.Node.Org.PeerNodes[self.Node.GossipNode].deploy_handler.Address
 
 
 class OrdererDeployHandler(NodeDeployHandler):
@@ -51,6 +60,9 @@ class OrdererDeployHandler(NodeDeployHandler):
         self.ListenPort, self.OperationsPort = str(node.Ports).split(", ")
         self.__init_basic_addresses__(node.Domain, self.ListenPort, self.OperationsPort)
         self.OperationsListenAddress = "0.0.0.0:%s" % self.OperationsPort
+
+    def deploy(self, genesis_block, orderer_binary=env.ORDERER):
+        config_orderer_yaml(self)
 
 
 def deploy_builder(node_type):

@@ -19,7 +19,7 @@ import platform
 
 PLATFORM = str(platform.system()).lower()
 
-PROJECT_HOME = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+PROJECT_HOME = os.path.abspath(os.path.join(os.path.dirname(__file__), ""))
 FABRIC_VERSION = "2.2.0"
 
 TARGET_DIR = os.path.join(PROJECT_HOME, "target")

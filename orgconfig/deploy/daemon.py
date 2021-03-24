@@ -16,7 +16,7 @@
 #
 import os
 import subprocess
-from config import env
+import env
 
 SUPPORTED_DAEMON_TYPES = ["nodaemon", "supervisor", "launchd"]
 DAEMON_CONFIG_SCRIPT = os.path.join(env.PROJECT_HOME, "scripts", "daemon-support", "config-daemon.sh")

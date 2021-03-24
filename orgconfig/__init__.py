@@ -68,6 +68,10 @@ class Organization(dict):
         self.OrdererNodes = {o[KEY_NAME]: Node(self, msp_holder.node_msp_holder(o[KEY_NAME]), deploy_builder("Orderer"), **o)
                              for o in self.Orderers}
 
+    def deploy_peers(self):
+        for peer in self.PeerNodes.values():
+            peer.deploy_handler.deploy()
+
 
 def config_organizations(config_file, target_dir):
     if not os.path.exists(config_file):

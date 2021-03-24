@@ -19,7 +19,7 @@ import subprocess
 import yaml
 import logging
 
-from config import env
+import env
 
 
 class CryptoConfigItem(yaml.YAMLObject):
