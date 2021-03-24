@@ -72,6 +72,10 @@ class Organization(dict):
         for peer in self.PeerNodes.values():
             peer.deploy_handler.deploy()
 
+    def deploy_orderers(self, genesis_block):
+        for orderer in self.OrdererNodes.values():
+            orderer.deploy_handler.deploy(genesis_block)
+
 
 def config_organizations(config_file, target_dir):
     if not os.path.exists(config_file):
