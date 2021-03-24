@@ -18,4 +18,4 @@ from config import cryptogen
 
 
 def static_msp_support(organization):
-    return cryptogen.CryptoGenerator(), cryptogen.StaticOrganizationMspHolder(organization)
+    return cryptogen.StaticMspSupport(organization)
