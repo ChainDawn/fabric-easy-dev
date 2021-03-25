@@ -88,13 +88,16 @@ class StubMspHolder:
     def tls_dir(self):
         return os.path.join(self.Dir, "tls")
 
+    def tls_crt(self):
+        return os.path.join(self.tls_dir(), "server.crt")
+
 
 class StaticOrganizationMspHolder:
 
     def __init__(self, org_domain, msp_dir):
         self.org_domain = org_domain
         self.org_crypto_dir = os.path.join(msp_dir, "peerOrganizations", self.org_domain)
-        self.org_msp_dir = os.path.join(self.org_crypto_dir, "")
+        self.org_msp_dir = os.path.join(self.org_crypto_dir, "msp")
         self.org_ca_dir = os.path.join(self.org_crypto_dir, "ca")
         self.org_nodes_dir = os.path.join(self.org_crypto_dir, "peers")
         self.org_tlsca_dir = os.path.join(self.org_crypto_dir, "tlsca")

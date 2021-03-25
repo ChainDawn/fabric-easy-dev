@@ -76,6 +76,9 @@ class Organization(dict):
         for orderer in self.OrdererNodes.values():
             orderer.deploy_handler.deploy(genesis_block)
 
+    def msp_dir(self):
+        return self.msp_support.msp_holder.org_msp_dir
+
 
 def config_organizations(config_file, target_dir):
     if not os.path.exists(config_file):
