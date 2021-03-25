@@ -16,11 +16,11 @@
 #
 import os, subprocess
 import yaml
-from config import env
-from config.configtx.policy import Policy
-from config.configtx.organization import Organization
-from config.configtx.application import Application
-from config.configtx.orderer import Orderer, EtcdRaft, Consenter
+import env
+from channel.configtx.policy import Policy
+from channel.configtx.organization import Organization
+from channel.configtx.application import Application
+from channel.configtx.orderer import Orderer, EtcdRaft, Consenter
 
 
 def __channel_capabilities__():

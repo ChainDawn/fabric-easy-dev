@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 import yaml
-from config.configtx.policy import Policy
+from channel.configtx import Policy
 
 
 def __policies__(mspid):
