@@ -20,7 +20,7 @@ import api
 import os
 import subprocess
 import yaml
-from config import env
+import env
 
 
 def __dump_cli_core_conf__(target_dir, mspid, template=env.CLI_CORE_YAML_TEMPLATE):
