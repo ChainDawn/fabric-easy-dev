@@ -82,14 +82,8 @@ class StubMspHolder:
         if not os.path.exists(self.Dir):
             raise ValueError("Msp holder directory not exists: %s" % self.Dir)
 
-    def msp_dir(self):
-        return os.path.join(self.Dir, "")
-
-    def tls_dir(self):
-        return os.path.join(self.Dir, "tls")
-
     def tls_crt(self):
-        return os.path.join(self.tls_dir(), "server.crt")
+        return os.path.join(self.Dir, "tls", "server.crt")
 
 
 class StaticOrganizationMspHolder:

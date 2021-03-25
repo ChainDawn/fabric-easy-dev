@@ -28,10 +28,7 @@ class NodeDeployHandler:
         if not os.path.exists(self.Dir):
             os.system("mkdir -p %s" % self.Dir)
 
-        self.msp_dir = os.path.join(self.Dir, "msp")
-        self.tls_dir = os.path.join(self.Dir, "tls")
-        os.system("cp -r %s %s" % (self.Node.msp_holder.msp_dir(), self.msp_dir))
-        os.system("cp -r %s %s" % (self.Node.msp_holder.tls_dir(), self.tls_dir))
+        os.system("cp -r %s/* %s" % (self.Node.msp_holder.Dir, self.Dir))
 
     def __init_basic_addresses__(self, domain, listen_port, operations_port):
         self.Address = "%s:%s" % (domain, listen_port)
@@ -49,13 +46,13 @@ class PeerDeployHandler(NodeDeployHandler):
         self.ListenPort, self.OperationsPort, self.ChaincodePort = str(node.Ports).split(", ")
         self.__init_basic_addresses__(self.Node.Domain, self.ListenPort, self.OperationsPort)
         self.ChaincodeListenAddress = "0.0.0.0:%s" % self.ChaincodePort
+        self.__init_process_handler__("peer node start")
 
     def deploy(self, peer_binary=env.PEER):
         if not os.path.exists(peer_binary):
             raise ValueError("Peer command binary file not exists: %s" % peer_binary)
         os.system("cp %s %s" % (peer_binary, self.Dir))
         config_core_yaml(self)
-        self.__init_process_handler__("peer node start")
 
     def gossip_bootstrap_address(self):
         return self.Node.Org.PeerNodes[self.Node.GossipNode].deploy_handler.Address
@@ -68,6 +65,7 @@ class OrdererDeployHandler(NodeDeployHandler):
         self.ListenPort, self.OperationsPort = str(node.Ports).split(", ")
         self.__init_basic_addresses__(node.Domain, self.ListenPort, self.OperationsPort)
         self.OperationsListenAddress = "0.0.0.0:%s" % self.OperationsPort
+        self.__init_process_handler__("orderer")
 
     def deploy(self, genesis_block, orderer_binary=env.ORDERER):
         if genesis_block is None or not os.path.exists(genesis_block):
@@ -77,7 +75,6 @@ class OrdererDeployHandler(NodeDeployHandler):
             raise ValueError("Orderer command binary file not exists: %s" % orderer_binary)
         os.system("cp %s %s" % (orderer_binary, self.Dir))
         config_orderer_yaml(self)
-        self.__init_process_handler__("orderer")
 
 
 def deploy_builder(node_type):
