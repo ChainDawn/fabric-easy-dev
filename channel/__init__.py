@@ -51,6 +51,20 @@ class SystemChannel(dict):
         for ord in self.Ords:
             ord.deploy_handler.deploy(genesis_block_file)
 
+    def boot(self):
+        for org in self.Orgs:
+            for node in org.PeerNodes.values():
+                node.deploy_handler.proc_handler.boot()
+        for ord in self.Ords:
+            ord.deploy_handler.proc_handler.boot()
+
+    def stop(self):
+        for org in self.Orgs:
+            for node in org.PeerNodes.values():
+                node.deploy_handler.proc_handler.stop()
+        for ord in self.Ords:
+            ord.deploy_handler.proc_handler.stop()
+
 
 class UserChannel(dict):
 

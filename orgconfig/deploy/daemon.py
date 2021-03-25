@@ -80,6 +80,6 @@ class DaemonProcessHandler:
     def check(self):
         if not os.path.exists(self.pid_file):
             return False
-        if not os.system("ps -aux | grep $(cat %s) >> null" % self.pid_file) == 0:
+        if not os.system("ps aux | grep $(cat %s) > /dev/null" % self.pid_file) == 0:
             return False
         return True

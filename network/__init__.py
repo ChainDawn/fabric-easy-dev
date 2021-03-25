@@ -40,12 +40,15 @@ class Network:
         self.sys_channel.deploy(self.sys_channel_cache_dir)
 
     def boot(self):
-        pass
+        self.sys_channel.boot()
 
     def stop(self):
-        pass
+        self.sys_channel.stop()
 
     def clear(self):
+        pass
+
+    def up(self):
         pass
 
     def down(self):
