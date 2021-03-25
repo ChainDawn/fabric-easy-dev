@@ -133,9 +133,10 @@ class StaticMspSupport:
         if not os.path.exists(self.Dir):
             os.system("mkdir -p %s" % self.Dir)
 
-    def create_msp(self):
+    def create_msp(self, auto_extend=False):
         if self.msp_holder.check():
             self.logger.info("Msp files already exists: %s" % self.msp_holder.org_crypto_dir)
-            self.msp_generator.extend(self)
+            if auto_extend:
+                self.msp_generator.extend(self)
             return
         self.msp_generator.generate(self)
