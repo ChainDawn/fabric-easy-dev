@@ -15,23 +15,24 @@
 # limitations under the License.
 #
 import os
-from config import Network, env
+import env
 import logging
+from network import Network
+
 import coloredlogs
 coloredlogs.install(level='INFO')
 logger = logging.getLogger("example")
 
 
 if __name__ == '__main__':
-    network_config_file = "./example-network.yaml"
+    config_file = "./example-network.yaml"
     network_target_directory = os.path.join(env.TARGET_DIR, "example")
 
     logger.info("Start config fabric network")
     logger.debug("\tFabric version: v%s" % env.FABRIC_VERSION)
-    logger.debug("\tNetwork config file: %s" % network_config_file)
+    logger.debug("\tNetwork organizations config file: %s" % config_file)
+    logger.debug("\tNetwork system channel config file: %s" % config_file)
     logger.debug("\tNetwork config target directory: %s" % network_target_directory)
 
-    network = Network(network_config_file, network_target_directory)
-    # network.deploy()
-    # network.boot()
-    network.deploy_channel(network_config_file, "easy-dev-user-channel")
+    network = Network(orgs_config=config_file, sys_channel_config=config_file, target_dir=network_target_directory)
+    network.deploy()
