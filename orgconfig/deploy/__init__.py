@@ -16,6 +16,7 @@
 #
 import os
 import env
+from orgconfig.deploy.daemon import DaemonProcessHandler
 from orgconfig.deploy.nodeconfig import config_core_yaml, config_orderer_yaml
 
 
@@ -37,6 +38,9 @@ class NodeDeployHandler:
         self.ListenAddress = "0.0.0.0:%s" % listen_port
         self.OperationsListenAddress = "0.0.0.0:%s" % operations_port
 
+    def __init_process_handler__(self, command):
+        self.proc_handler = DaemonProcessHandler(self.Dir, "%s-%s" % (self.Node.Org.Name, self.Node.Name), command)
+
 
 class PeerDeployHandler(NodeDeployHandler):
 
@@ -47,7 +51,11 @@ class PeerDeployHandler(NodeDeployHandler):
         self.ChaincodeListenAddress = "0.0.0.0:%s" % self.ChaincodePort
 
     def deploy(self, peer_binary=env.PEER):
+        if not os.path.exists(peer_binary):
+            raise ValueError("Peer command binary file not exists: %s" % peer_binary)
+        os.system("cp %s %s" % (peer_binary, self.Dir))
         config_core_yaml(self)
+        self.__init_process_handler__("peer node start")
 
     def gossip_bootstrap_address(self):
         return self.Node.Org.PeerNodes[self.Node.GossipNode].deploy_handler.Address
@@ -62,7 +70,14 @@ class OrdererDeployHandler(NodeDeployHandler):
         self.OperationsListenAddress = "0.0.0.0:%s" % self.OperationsPort
 
     def deploy(self, genesis_block, orderer_binary=env.ORDERER):
+        if genesis_block is None or not os.path.exists(genesis_block):
+            raise ValueError("Genesis block file not exists: %s" % genesis_block)
+        os.system("cp %s %s" % (genesis_block, self.Dir))
+        if not os.path.exists(orderer_binary):
+            raise ValueError("Orderer command binary file not exists: %s" % orderer_binary)
+        os.system("cp %s %s" % (orderer_binary, self.Dir))
         config_orderer_yaml(self)
+        self.__init_process_handler__("orderer")
 
 
 def deploy_builder(node_type):
