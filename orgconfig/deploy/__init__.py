@@ -44,6 +44,7 @@ class PeerDeployHandler(NodeDeployHandler):
     def __init__(self, node, deploy_dir):
         super().__init__(node, deploy_dir)
         self.ListenPort, self.OperationsPort, self.ChaincodePort = str(node.Ports).split(", ")
+        self.data_dir = os.path.join(self.Dir, "data")
         self.__init_basic_addresses__(self.Node.Domain, self.ListenPort, self.OperationsPort)
         self.ChaincodeListenAddress = "0.0.0.0:%s" % self.ChaincodePort
         self.__init_process_handler__("peer node start")
@@ -57,12 +58,19 @@ class PeerDeployHandler(NodeDeployHandler):
     def gossip_bootstrap_address(self):
         return self.Node.Org.PeerNodes[self.Node.GossipNode].deploy_handler.Address
 
+    def clear(self):
+        self.proc_handler.clear()
+        os.system("rm -fr %s" % self.data_dir)
+
 
 class OrdererDeployHandler(NodeDeployHandler):
 
     def __init__(self, node, deploy_dir):
         super().__init__(node, deploy_dir)
         self.ListenPort, self.OperationsPort = str(node.Ports).split(", ")
+        self.ledger_dir = os.path.join(self.Dir, "ledger")
+        self.etcdraft_dir = os.path.join(self.Dir, "etcdraft")
+        self.genesis_block = os.path.join(self.Dir, "genesis.block")
         self.__init_basic_addresses__(node.Domain, self.ListenPort, self.OperationsPort)
         self.OperationsListenAddress = "0.0.0.0:%s" % self.OperationsPort
         self.__init_process_handler__("orderer")
@@ -70,11 +78,16 @@ class OrdererDeployHandler(NodeDeployHandler):
     def deploy(self, genesis_block, orderer_binary=env.ORDERER):
         if genesis_block is None or not os.path.exists(genesis_block):
             raise ValueError("Genesis block file not exists: %s" % genesis_block)
-        os.system("cp %s %s" % (genesis_block, self.Dir))
+        os.system("cp %s %s" % (genesis_block, self.genesis_block))
         if not os.path.exists(orderer_binary):
             raise ValueError("Orderer command binary file not exists: %s" % orderer_binary)
         os.system("cp %s %s" % (orderer_binary, self.Dir))
         config_orderer_yaml(self)
+
+    def clear(self):
+        self.proc_handler.clear()
+        os.system("rm -fr %s" % self.ledger_dir)
+        os.system("rm -fr %s" % self.etcdraft_dir)
 
 
 def deploy_builder(node_type):

@@ -71,6 +71,10 @@ class DaemonProcessHandler:
         self.logger.info("Stopping process: %s" % self.Label)
         os.system(self.stop_script)
 
+    def clear(self):
+        self.stop()
+        os.system("rm -f %s" % self.log_file)
+
     def __bootable__(self):
         return os.path.exists(self.boot_script)
 

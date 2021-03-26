@@ -46,10 +46,11 @@ class Network:
         self.sys_channel.stop()
 
     def clear(self):
-        pass
+        self.sys_channel.clear()
 
     def up(self):
-        pass
+        self.sys_channel.deploy(self.sys_channel_cache_dir)
+        self.sys_channel.boot()
 
     def down(self):
         pass
