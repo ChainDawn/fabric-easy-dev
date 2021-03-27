@@ -60,6 +60,9 @@ class SystemChannel(dict):
     def clear(self):
         self.__call_on_all_nodes__(lambda n: n.deploy_handler.clear())
 
+    def status(self):
+        self.__call_on_all_nodes__(lambda n: n.deploy_handler.display())
+
     def __call_on_all_nodes__(self, _callback):
         for org in self.Orgs:
             for node in org.PeerNodes.values():
@@ -73,9 +76,10 @@ class UserChannel(dict):
     def __getattr__(self, item):
         return self[item]
 
-    def __init__(self, orgs_map, **config):
+    def __init__(self, orgs_map, channel_name, **config):
         super(UserChannel, self).__init__()
         self.update(config)
+        self.Name = channel_name
         self.Orgs = [orgs_map[name] for name in self.Organizations]
 
     def create_tx(self, cache_dir, tx_support=__default_tx_support__()):
@@ -90,3 +94,15 @@ def config_sys_channel(orgs_map, config_file):
     if KEY_SYS_CHANNEL not in raw_conf:
         raise Exception("No system channel found in config file: %s" % config_file)
     return SystemChannel(orgs_map, **raw_conf[KEY_SYS_CHANNEL])
+
+
+def config_user_channel(orgs_map, config_file, channel_name):
+    if not os.path.exists(config_file):
+        raise ValueError("Config file not exists: %s" % config_file)
+    with open(config_file, 'r') as conf:
+        raw_conf = yaml.load(conf, yaml.CLoader)
+    if KEY_USER_CHANNELS not in raw_conf:
+        raise Exception("No system channel found in config file: %s" % config_file)
+    if channel_name not in raw_conf[KEY_USER_CHANNELS]:
+        raise Exception("No channel found in config file: %s" % channel_name)
+    return UserChannel(orgs_map, channel_name, **raw_conf[KEY_USER_CHANNELS][channel_name])

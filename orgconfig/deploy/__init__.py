@@ -16,6 +16,7 @@
 #
 import os
 import env
+import logging
 from orgconfig.deploy.daemon import DaemonProcessHandler
 from orgconfig.deploy.nodeconfig import config_core_yaml, config_orderer_yaml
 
@@ -25,10 +26,20 @@ class NodeDeployHandler:
     def __init__(self, node, deploy_dir):
         self.Node = node
         self.Dir = os.path.join(deploy_dir, self.Node.Name)
+        self.logger = logging.getLogger("deploy")
         if not os.path.exists(self.Dir):
             os.system("mkdir -p %s" % self.Dir)
 
         os.system("cp -r %s/* %s" % (self.Node.msp_holder.Dir, self.Dir))
+
+    def display(self):
+        self.logger.info("===================================== NODE INFO =====================================")
+        self.logger.info("Node Name: %s" % self.Node.Name)
+        self.logger.info("Node Domain: %s" % self.Node.Domain)
+        self.logger.info("Node Access Address: %s" % self.Address)
+        self.logger.info("Node Operations Address: %s" % self.OperationsListenAddress)
+        self.logger.info("Deploy Directory: %s" % self.Dir)
+        self.proc_handler.display()
 
     def __init_basic_addresses__(self, domain, listen_port, operations_port):
         self.Address = "%s:%s" % (domain, listen_port)

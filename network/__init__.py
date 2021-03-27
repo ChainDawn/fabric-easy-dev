@@ -15,7 +15,7 @@
 #
 import os
 from orgconfig import config_organizations
-from channel import config_sys_channel
+from channel import config_sys_channel, config_user_channel
 
 
 class Network:
@@ -54,3 +54,10 @@ class Network:
 
     def down(self):
         pass
+
+    def status(self):
+        self.sys_channel.status()
+
+    def create_channel(self, config_file, channel_name):
+        channel = config_user_channel(self.orgs_map, config_file, channel_name)
+        channel.create_tx(self.channel_cache_dir)

@@ -33,7 +33,7 @@ class DaemonProcessHandler:
         self.stop_script = os.path.join(self.Dir, "stop.sh")
         self.log_file = os.path.join(self.Dir, "%s.log" % self.Label)
         self.pid_file = os.path.join(self.Dir, "pid")
-        self.logger = logging.getLogger("Process")
+        self.logger = logging.getLogger("process")
 
         if not re_config and self.__bootable__() and self.__stoppable__():
             self.logger.info("Scripts for process [%s] already exists. No need to re-generate." % p_label)
@@ -74,6 +74,12 @@ class DaemonProcessHandler:
     def clear(self):
         self.stop()
         os.system("rm -f %s" % self.log_file)
+
+    def display(self):
+        self.logger.info("Process Label: %s" % self.Label)
+        self.logger.info("Process Status: %s" % ("Running" if self.check() else "Stopped"))
+        self.logger.info("Process Log File: %s" % self.log_file)
+        self.logger.info("Process PID File: %s" % self.pid_file)
 
     def __bootable__(self):
         return os.path.exists(self.boot_script)
