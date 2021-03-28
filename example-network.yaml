@@ -59,3 +59,9 @@ SystemChannel:
     - Org2:
         - orderer0
         - orderer1
+
+UserChannels:
+  easy-user-channel:
+    Organizations:
+      - Org1
+      - Org2
