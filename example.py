@@ -21,6 +21,8 @@ import logging
 from network import Network
 
 import coloredlogs
+coloredlogs.DEFAULT_LOG_FORMAT = "%(asctime)s %(levelname)s %(message)s"
+coloredlogs.DEFAULT_DATE_FORMAT = "%m-%d %H:%M:%S"
 coloredlogs.install(level='INFO')
 logger = logging.getLogger("example")
 
