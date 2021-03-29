@@ -85,6 +85,9 @@ class UserChannel(dict):
     def create_tx(self, cache_dir, tx_support=__default_tx_support__()):
         return tx_support.generate_create_channel_tx(self, cache_dir)
 
+    def update_tx(self):
+        pass
+
 
 def config_sys_channel(orgs_map, config_file):
     if not os.path.exists(config_file):

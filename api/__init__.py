@@ -29,45 +29,30 @@ class ApiConfig(dict):
         self.Prs = [org_map[p["Org"]].node(p["Name"]) for p in self.Peers]
 
 
-class PeerNodeApi(metaclass=ABCMeta):
+class ApiSupport(metaclass=ABCMeta):
 
     @abstractmethod
-    def joined_channels(self):
+    def channel(self, channel):
         pass
 
     @abstractmethod
-    def installed_chaincode(self):
+    def chaincode_lifecycle(self):
         pass
 
     @abstractmethod
-    def install_chaincode(self):
-        pass
-
-
-class OrdererNodeApi(metaclass=ABCMeta):
-
-    @abstractmethod
-    def broadcast(self):
+    def chaincode(self):
         pass
 
 
 class ChannelApi(metaclass=ABCMeta):
 
     @abstractmethod
-    def create(self, api_config, tx):
+    def create(self):
         pass
 
     @abstractmethod
-    def update(self, tx):
+    def update(self):
         pass
 
-
-class ChaincodeLifecycleApi(metaclass=ABCMeta):
-
-    @abstractmethod
-    def approve(self):
-        pass
-
-    @abstractmethod
-    def commit(self):
+    def join(self, peer):
         pass

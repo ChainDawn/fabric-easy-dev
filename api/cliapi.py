@@ -33,37 +33,46 @@ def __dump_cli_core_conf__(target_dir, mspid, template=env.CLI_CORE_YAML_TEMPLAT
         yaml.dump(template_yaml_data, target_file)
 
 
+class CliApiSupport(api.ApiSupport, ABC):
+
+    def __init__(self, api_config, cache_dir, peer_binary=env.PEER):
+        self.api_config = api_config
+        self.Dir = os.path.join(cache_dir, "cli-api-support")
+        self.peer = peer_binary
+        if not os.path.exists(self.Dir):
+            os.system("mkdir -p %s" % self.Dir)
+
+    def channel(self, channel):
+        pass
+
+    def chaincode_lifecycle(self):
+        pass
+
+    def chaincode(self):
+        pass
+
+    def __execute_api__(self, sub_command, func, *args):
+        return subprocess.call([self.peer, sub_command, func, *args])
+
+
 class CliChannelApi(api.ChannelApi, ABC):
 
-    def __init__(self, channel, peer_binary=env.PEER):
+    def __init__(self, channel, api_support):
         super(CliChannelApi, self).__init__()
-        self.peer = peer_binary
         self.channel = channel
+        self.api_support = api_support
 
-        self.Dir = os.path.join(channel.Dir, "CLI")
-        for org in self.channel.Orgs:
-            target_dir = os.path.join(self.Dir, org.Name)
-            if not os.path.exists(target_dir):
-                os.system("mkdir -p %s" % target_dir)
-            os.system("cp -r %s %s" % (org.admin_msp(), os.path.join(target_dir, "msp")))
-            os.system("cp -r %s %s" % (org.admin_tls(), os.path.join(target_dir, "tls")))
-            __dump_cli_core_conf__(target_dir, org.MSPID)
+    def create(self):
+        block_file = os.path.join(self.api_support.Dir, "%s.block" % self.channel.Name)
 
-    def create(self, api_config, tx):
-        api_peer = api_config.Prs[0]
-        api_orderer = api_config.Ord
-        os.environ["FABRIC_CFG_PATH"] = os.path.join(self.Dir, api_peer.Org.Name)
-        os.environ["CORE_PEER_ADDRESS"] = api_peer.Address
-        block_file = os.path.join(self.Dir, "%s.block" % self.channel.Name)
-        subprocess.call([
-            self.peer, "channel", "create",
+        self.api_support.__execute_api__("channel", "create", *[
             "--channelID", self.channel.Name,
-            "--file", tx,
-            "--orderer", api_orderer.Address,
+            "--file", self.channel.create_tx(self.api_support.Dir),
+            "--orderer", self.api_support.api_config.orderer.Address,
             "--tls",
-            "--cafile", api_orderer.Org.tlsca(),
+            "--cafile", self.api_support.api_config.orderer.Org.tlsca(),
             "--outputBlock", block_file,
         ])
 
-    def update(self, tx):
+    def update(self):
         pass
