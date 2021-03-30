@@ -15,8 +15,13 @@
 #
 ApiConfig:
   Peers:
-    - Name: peer10
+    - Name: peer0
       Org: Org1
+    - Name: peer0
+      Org: Org2
   Orderer:
-    Name: orderer10
+    Name: orderer1
+    Org: Org1
+  User:
+    Name: Admin
     Org: Org1

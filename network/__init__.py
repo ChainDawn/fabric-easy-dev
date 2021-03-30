@@ -16,6 +16,7 @@
 import os
 from orgconfig import config_organizations
 from channel import config_sys_channel, config_user_channel
+from api import support as api_support
 
 
 class Network:
@@ -58,6 +59,9 @@ class Network:
     def status(self):
         self.sys_channel.status()
 
-    def create_channel(self, config_file, channel_name):
+    def create_channel(self, channel_name, config_file, api_config_file):
         channel = config_user_channel(self.orgs_map, config_file, channel_name)
-        channel.create_tx(self.channel_cache_dir)
+        channel_cache_dir = os.path.join(self.channel_cache_dir, channel_name)
+        support = api_support.cli_api_support(self.orgs_map, api_config_file, channel_cache_dir)
+        channel_api = support.channel(channel)
+        channel_api.create()

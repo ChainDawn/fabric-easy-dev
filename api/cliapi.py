@@ -36,14 +36,28 @@ def __dump_cli_core_conf__(target_dir, mspid, template=env.CLI_CORE_YAML_TEMPLAT
 class CliApiSupport(api.ApiSupport, ABC):
 
     def __init__(self, api_config, cache_dir, peer_binary=env.PEER):
-        self.api_config = api_config
+        if not os.path.exists(peer_binary):
+            raise Exception("Peer binary not found: %s" % peer_binary)
+
+        self.config = api_config
+
         self.Dir = os.path.join(cache_dir, "cli-api-support")
-        self.peer = peer_binary
         if not os.path.exists(self.Dir):
             os.system("mkdir -p %s" % self.Dir)
 
+        self.Peer = os.path.join(self.Dir, "peer")
+        os.system("cp %s %s" % (peer_binary, self.Peer))
+
+        self.user_dir = os.path.join(self.Dir, self.config.User.MspId, self.config.User.Name)
+
+        if not os.path.exists(self.user_dir):
+            os.system("mkdir -p %s" % self.user_dir)
+
+        __dump_cli_core_conf__(self.user_dir, self.config.User.MspId)
+        os.system("cp -r %s/* %s" % (self.config.User.Dir, self.user_dir))
+
     def channel(self, channel):
-        pass
+        return CliChannelApi(channel, self)
 
     def chaincode_lifecycle(self):
         pass
@@ -52,7 +66,8 @@ class CliApiSupport(api.ApiSupport, ABC):
         pass
 
     def __execute_api__(self, sub_command, func, *args):
-        return subprocess.call([self.peer, sub_command, func, *args])
+        os.environ["FABRIC_CFG_PATH"] = self.user_dir
+        return subprocess.call([self.Peer, sub_command, func, *args])
 
 
 class CliChannelApi(api.ChannelApi, ABC):
@@ -60,17 +75,16 @@ class CliChannelApi(api.ChannelApi, ABC):
     def __init__(self, channel, api_support):
         super(CliChannelApi, self).__init__()
         self.channel = channel
-        self.api_support = api_support
+        self.support = api_support
 
     def create(self):
-        block_file = os.path.join(self.api_support.Dir, "%s.block" % self.channel.Name)
-
-        self.api_support.__execute_api__("channel", "create", *[
+        block_file = os.path.join(self.support.Dir, "%s.block" % self.channel.Name)
+        self.support.__execute_api__("channel", "create", *[
             "--channelID", self.channel.Name,
-            "--file", self.channel.create_tx(self.api_support.Dir),
-            "--orderer", self.api_support.api_config.orderer.Address,
+            "--file", self.channel.create_tx(self.support.Dir),
+            "--orderer", self.support.config.Ord.deploy_handler.Address,
             "--tls",
-            "--cafile", self.api_support.api_config.orderer.Org.tlsca(),
+            "--cafile", self.support.config.Ord.msp_holder.tls_ca(),
             "--outputBlock", block_file,
         ])
 

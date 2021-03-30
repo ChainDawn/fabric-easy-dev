@@ -75,9 +75,10 @@ class CryptoGenerator(yaml.YAMLObject):
 
 class StubMspHolder:
 
-    def __init__(self, name, org_domain, base_dir):
+    def __init__(self, name, org_domain, msp_id, base_dir):
         self.Name = name
         self.OrgDomain = org_domain
+        self.MspId = msp_id
         self.Dir = base_dir
         if not os.path.exists(self.Dir):
             raise ValueError("Msp holder directory not exists: %s" % self.Dir)
@@ -85,11 +86,15 @@ class StubMspHolder:
     def tls_crt(self):
         return os.path.join(self.Dir, "tls", "server.crt")
 
+    def tls_ca(self):
+        return os.path.join(self.Dir, "tls", "ca.crt")
+
 
 class StaticOrganizationMspHolder:
 
-    def __init__(self, org_domain, msp_dir):
+    def __init__(self, org_domain, msp_id, msp_dir):
         self.org_domain = org_domain
+        self.msp_id = msp_id
         self.org_crypto_dir = os.path.join(msp_dir, "peerOrganizations", self.org_domain)
         self.org_msp_dir = os.path.join(self.org_crypto_dir, "msp")
         self.org_ca_dir = os.path.join(self.org_crypto_dir, "ca")
@@ -111,13 +116,16 @@ class StaticOrganizationMspHolder:
         node_msp_dir = os.path.join(self.org_nodes_dir, "%s.%s" % (node_name, self.org_domain))
         if not os.path.exists(node_msp_dir):
             raise Exception("Node not found: %s" % node_name)
-        return StubMspHolder(node_name, self.org_domain, node_msp_dir)
+        return StubMspHolder(node_name, self.org_domain, self.msp_id, node_msp_dir)
+
+    def user_msp_holder(self, user_name):
+        user_msp_dir = os.path.join(self.org_users_dir, "%s@%s" % (user_name, self.org_domain))
+        if not os.path.exists(user_msp_dir):
+            raise Exception("User not found: %s" % user_name)
+        return StubMspHolder(user_name, self.org_domain, self.msp_id, user_msp_dir)
 
     def admin_msp_holder(self):
-        user_msp_dir = os.path.join(self.org_users_dir, "Admin@%s" % self.org_domain)
-        if not os.path.exists(user_msp_dir):
-            raise Exception("User not found: %s" % "Admin")
-        return StubMspHolder("Admin", self.org_domain, user_msp_dir)
+        return self.user_msp_holder("Admin")
 
 
 class StaticMspSupport:
@@ -127,7 +135,7 @@ class StaticMspSupport:
         self.Dir = os.path.join(org.Dir, "static-msp-support")
         self.logger = logging.getLogger("msp")
         self.config_cache_dir = org.Dir
-        self.msp_holder = StaticOrganizationMspHolder(org_domain=org.Domain, msp_dir=self.Dir)
+        self.msp_holder = StaticOrganizationMspHolder(org_domain=org.Domain, msp_id=org.MSPID, msp_dir=self.Dir)
         self.msp_generator = CryptoGenerator()
 
         if not os.path.exists(self.Dir):

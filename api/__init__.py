@@ -25,8 +25,9 @@ class ApiConfig(dict):
     def __init__(self, org_map, **config):
         super(ApiConfig, self).__init__()
         self.update(config)
-        self.Ord = org_map[self.Orderer["Org"]].node(self.Orderer["Name"])
-        self.Prs = [org_map[p["Org"]].node(p["Name"]) for p in self.Peers]
+        self.Ord = org_map[self.Orderer["Org"]].OrdererNodes[self.Orderer["Name"]]
+        self.Prs = [org_map[p["Org"]].PeerNodes[p["Name"]] for p in self.Peers]
+        self.User = org_map[self.User["Org"]].msp_support.msp_holder.user_msp_holder(self.User["Name"])
 
 
 class ApiSupport(metaclass=ABCMeta):
