@@ -15,13 +15,13 @@
 #
 import os
 from orgconfig import config_organizations
-from channel import config_sys_channel, config_user_channel
+from channel import config_sys_channel, config_user_channels
 from api import support as api_support
 
 
 class Network:
 
-    def __init__(self, orgs_config, sys_channel_config, target_dir):
+    def __init__(self, orgs_config, sys_channel_config, channels_config, target_dir):
         self.Dir = target_dir
         if not os.path.exists(self.Dir):
             os.system("mkdir -p %s" % self.Dir)
@@ -36,6 +36,8 @@ class Network:
         self.channel_cache_dir = os.path.join(target_dir, "channels")
         if not os.path.exists(self.channel_cache_dir):
             os.system("mkdir -p %s" % self.channel_cache_dir)
+
+        self.channels = config_user_channels(self.orgs_map, channels_config)
 
     def echo_hosts(self, ip="127.0.0.1"):
         hosts_cache = ""
@@ -70,9 +72,10 @@ class Network:
     def status(self):
         self.sys_channel.status()
 
-    def create_channel(self, channel_name, config_file, api_config_file):
-        channel = config_user_channel(self.orgs_map, config_file, channel_name)
+    def create_channel(self, channel_name, api_config_file):
+        if channel_name not in self.channels:
+            raise Exception("No channel configuration found: %s" % channel_name)
+        channel = self.channels[channel_name]
         channel_cache_dir = os.path.join(self.channel_cache_dir, channel_name)
         support = api_support.cli_api_support(self.orgs_map, api_config_file, channel_cache_dir)
-        channel_api = support.channel(channel)
-        channel_api.create()
+        channel.create(support)

@@ -88,6 +88,10 @@ class UserChannel(dict):
     def update_tx(self):
         pass
 
+    def create(self, api_support):
+        channel_api = api_support.channel(self)
+        channel_api.create()
+
 
 def config_sys_channel(orgs_map, config_file):
     if not os.path.exists(config_file):
@@ -99,13 +103,12 @@ def config_sys_channel(orgs_map, config_file):
     return SystemChannel(orgs_map, **raw_conf[KEY_SYS_CHANNEL])
 
 
-def config_user_channel(orgs_map, config_file, channel_name):
+def config_user_channels(orgs_map, config_file):
     if not os.path.exists(config_file):
         raise ValueError("Config file not exists: %s" % config_file)
     with open(config_file, 'r') as conf:
         raw_conf = yaml.load(conf, yaml.CLoader)
     if KEY_USER_CHANNELS not in raw_conf:
         raise Exception("No system channel found in config file: %s" % config_file)
-    if channel_name not in raw_conf[KEY_USER_CHANNELS]:
-        raise Exception("No channel found in config file: %s" % channel_name)
-    return UserChannel(orgs_map, channel_name, **raw_conf[KEY_USER_CHANNELS][channel_name])
+    return {ch_name: UserChannel(orgs_map, ch_name, **raw_conf[KEY_USER_CHANNELS][ch_name])
+            for ch_name in raw_conf[KEY_USER_CHANNELS].keys()}
