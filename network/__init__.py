@@ -37,6 +37,17 @@ class Network:
         if not os.path.exists(self.channel_cache_dir):
             os.system("mkdir -p %s" % self.channel_cache_dir)
 
+    def echo_hosts(self, ip="127.0.0.1"):
+        hosts_cache = ""
+        for org in self.orgs_map.values():
+            hosts_cache += "\n"
+            hosts_cache += "# fabric network host configs for organization: %s\n" % org.Name
+            for p in org.PeerNodes.values():
+                hosts_cache += "%s\t%s\n" % (ip, p.Domain)
+            for o in org.OrdererNodes.values():
+                hosts_cache += "%s\t%s\n" % (ip, o.Domain)
+        print(hosts_cache)
+
     def deploy(self):
         self.sys_channel.deploy(self.sys_channel_cache_dir)
 
