@@ -90,3 +90,17 @@ class CliChannelApi(api.ChannelApi, ABC):
 
     def update(self):
         pass
+
+    def fetch(self):
+        latest_block_file = os.path.join(self.support.Dir, "%s-latest.block" % self.channel.Name)
+        self.support.__execute_api__("channel", "fetch", *[
+            "oldest", latest_block_file,
+            "--orderer", self.support.config.Ord.deploy_handler.Address,
+            "--channelID", self.channel.Name,
+            "--tls",
+            "--cafile", self.support.config.Ord.msp_holder.tls_ca(),
+        ])
+        return latest_block_file
+
+    def join(self, peer):
+        pass

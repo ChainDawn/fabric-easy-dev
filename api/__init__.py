@@ -55,5 +55,5 @@ class ChannelApi(metaclass=ABCMeta):
     def update(self):
         pass
 
-    def join(self, peer):
+    def join(self, peers):
         pass

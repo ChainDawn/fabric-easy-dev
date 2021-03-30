@@ -80,7 +80,7 @@ class UserChannel(dict):
         super(UserChannel, self).__init__()
         self.update(config)
         self.Name = channel_name
-        self.Orgs = [orgs_map[name] for name in self.Organizations]
+        self.Orgs = {name: orgs_map[name] for name in self.Organizations}
 
     def create_tx(self, cache_dir, tx_support=__default_tx_support__()):
         return tx_support.generate_create_channel_tx(self, cache_dir)

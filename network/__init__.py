@@ -72,10 +72,19 @@ class Network:
     def status(self):
         self.sys_channel.status()
 
-    def create_channel(self, channel_name, api_config_file):
-        if channel_name not in self.channels:
-            raise Exception("No channel configuration found: %s" % channel_name)
-        channel = self.channels[channel_name]
-        channel_cache_dir = os.path.join(self.channel_cache_dir, channel_name)
-        support = api_support.cli_api_support(self.orgs_map, api_config_file, channel_cache_dir)
-        channel.create(support)
+    def __channel_cache_dir__(self, ch_name):
+        return os.path.join(self.channel_cache_dir, ch_name)
+
+    def __channel__(self, ch_name):
+        if ch_name not in self.channels:
+            raise Exception("No channel configuration found: %s" % ch_name)
+        return self.channels[ch_name]
+
+    def create_channel(self, ch_name, api_config_file):
+        support = api_support.cli_api_support(self.orgs_map, api_config_file, self.__channel_cache_dir__(ch_name))
+        self.__channel__(ch_name).create(support)
+
+    def join_channel(self, ch_name, peer, api_config_file):
+        support = api_support.cli_api_support(self.orgs_map, api_config_file, self.__channel_cache_dir__(ch_name))
+        self.__channel__(ch_name).join(support, peer)
+
