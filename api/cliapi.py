@@ -65,8 +65,14 @@ class CliApiSupport(api.ApiSupport, ABC):
     def chaincode(self):
         pass
 
-    def __execute_api__(self, sub_command, func, *args):
+    def __execute_api__(self, sub_command, func, args):
         os.environ["FABRIC_CFG_PATH"] = self.user_dir
+        common_orderer_args = [
+            "--orderer", self.config.Ord.deploy_handler.Address,
+            "--tls",
+            "--cafile", self.config.Ord.msp_holder.tls_ca(),
+        ]
+        args += common_orderer_args
         return subprocess.call([self.Peer, sub_command, func, *args])
 
 
@@ -79,12 +85,9 @@ class CliChannelApi(api.ChannelApi, ABC):
 
     def create(self):
         block_file = os.path.join(self.support.Dir, "%s.block" % self.channel.Name)
-        self.support.__execute_api__("channel", "create", *[
+        self.support.__execute_api__("channel", "create", [
             "--channelID", self.channel.Name,
             "--file", self.channel.create_tx(self.support.Dir),
-            "--orderer", self.support.config.Ord.deploy_handler.Address,
-            "--tls",
-            "--cafile", self.support.config.Ord.msp_holder.tls_ca(),
             "--outputBlock", block_file,
         ])
 
@@ -93,14 +96,15 @@ class CliChannelApi(api.ChannelApi, ABC):
 
     def fetch(self):
         latest_block_file = os.path.join(self.support.Dir, "%s-latest.block" % self.channel.Name)
-        self.support.__execute_api__("channel", "fetch", *[
+        self.support.__execute_api__("channel", "fetch", [
             "oldest", latest_block_file,
-            "--orderer", self.support.config.Ord.deploy_handler.Address,
             "--channelID", self.channel.Name,
-            "--tls",
-            "--cafile", self.support.config.Ord.msp_holder.tls_ca(),
         ])
         return latest_block_file
 
     def join(self, peer):
-        pass
+        latest_block_file = self.fetch()
+        os.environ["CORE_PEER_ADDRESS"] = peer.deploy_handler.Address
+        self.support.__execute_api__("channel", "join", [
+            "-b", latest_block_file,
+        ])

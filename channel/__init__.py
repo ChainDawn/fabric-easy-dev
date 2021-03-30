@@ -92,6 +92,11 @@ class UserChannel(dict):
         channel_api = api_support.channel(self)
         channel_api.create()
 
+    def join(self, api_support, org_name, peer_name):
+        peer = self.Orgs[org_name].PeerNodes[peer_name]
+        channel_api = api_support.channel(self)
+        channel_api.join(peer)
+
 
 def config_sys_channel(orgs_map, config_file):
     if not os.path.exists(config_file):

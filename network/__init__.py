@@ -85,6 +85,9 @@ class Network:
         self.__channel__(ch_name).create(support)
 
     def join_channel(self, ch_name, peer, api_config_file):
+        ps = str(peer).split(".")
+        if len(ps) != 2:
+            raise ValueError("Peer node error: %s, correct format is: org_name.node_name, example: Org1.peer0" % ps)
         support = api_support.cli_api_support(self.orgs_map, api_config_file, self.__channel_cache_dir__(ch_name))
-        self.__channel__(ch_name).join(support, peer)
+        self.__channel__(ch_name).join(support, ps[0], ps[1])
 
