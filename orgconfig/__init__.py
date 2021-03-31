@@ -88,3 +88,23 @@ def config_organizations(config_file, target_dir):
     if KEY_ORGANIZATIONS not in raw_conf:
         raise Exception("No organization found in config file: %s" % config_file)
     return {org["Name"]: Organization(target_dir, **org) for org in raw_conf[KEY_ORGANIZATIONS]}
+
+
+def find_node(org_map, node):
+    org_name, node_name = str(node).split(".")
+    if org_name not in org_map:
+        raise ValueError("Organization not found: %s" % org_name)
+    org = org_map[org_name]
+    if node_name in org.PeerNodes:
+        return org.PeerNodes[node_name]
+    if node_name in org.OrdererNodes:
+        return org.OrdererNodes[node_name]
+    raise ValueError("Node not found: %s" % node)
+
+
+def find_user(org_map, user):
+    org_name, user_name = str(user).split(".")
+    if org_name not in org_map:
+        raise ValueError("Organization not found: %s" % org_name)
+    org = org_map[org_name]
+    return org.msp_support.msp_holder.user_msp_holder(user_name)

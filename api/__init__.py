@@ -15,19 +15,23 @@
 # limitations under the License.
 #
 from abc import ABCMeta, abstractmethod
+from orgconfig import find_user, find_node
+
+API_KEY_ORDERER = "Orderer"
+API_KEY_ENDORSERS = "Endorsers"
+API_KEY_COMMITTER = "Committers"
+API_KEY_SIGNER = "Signer"
 
 
-class ApiConfig(dict):
-
-    def __getattr__(self, item):
-        return self[item]
+class ApiConfig:
 
     def __init__(self, org_map, **config):
-        super(ApiConfig, self).__init__()
-        self.update(config)
-        self.Ord = org_map[self.Orderer["Org"]].OrdererNodes[self.Orderer["Name"]]
-        self.Prs = [org_map[p["Org"]].PeerNodes[p["Name"]] for p in self.Peers]
-        self.User = org_map[self.User["Org"]].msp_support.msp_holder.user_msp_holder(self.User["Name"])
+        self.Signer = find_user(org_map, config[API_KEY_SIGNER])
+        self.Orderer = find_node(org_map, config[API_KEY_ORDERER])
+        if API_KEY_ENDORSERS in config:
+            self.Endorsers = [find_node(org_map, peer) for peer in config[API_KEY_ENDORSERS]]
+        if API_KEY_COMMITTER in config:
+            self.Committers = [find_node(org_map, peer) for peer in config[API_KEY_COMMITTER]]
 
 
 class ApiSupport(metaclass=ABCMeta):

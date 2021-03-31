@@ -14,14 +14,10 @@
 # limitations under the License.
 #
 ApiConfig:
-  Peers:
-    - Name: peer0
-      Org: Org1
-    - Name: peer0
-      Org: Org2
-  Orderer:
-    Name: orderer1
-    Org: Org1
-  User:
-    Name: Admin
-    Org: Org1
+  Endorsers:
+    - Org1.peer0
+    - Org2.peer0
+  Committers:
+    - Org1.peer1
+  Orderer: Org1.orderer0
+  Signer: Org1.Admin

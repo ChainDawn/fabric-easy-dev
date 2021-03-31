@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 import os
-from orgconfig import config_organizations
+from orgconfig import config_organizations, find_node
 from channel import config_sys_channel, config_user_channels
 from api import support as api_support
 
@@ -84,10 +84,8 @@ class Network:
         support = api_support.cli_api_support(self.orgs_map, api_config_file, self.__channel_cache_dir__(ch_name))
         self.__channel__(ch_name).create(support)
 
-    def join_channel(self, ch_name, peer, api_config_file):
-        ps = str(peer).split(".")
-        if len(ps) != 2:
-            raise ValueError("Peer node error: %s, correct format is: org_name.node_name, example: Org1.peer0" % ps)
+    def join_channel(self, ch_name, peer_name, api_config_file):
+        peer = find_node(self.orgs_map, peer_name)
         support = api_support.cli_api_support(self.orgs_map, api_config_file, self.__channel_cache_dir__(ch_name))
-        self.__channel__(ch_name).join(support, ps[0], ps[1])
+        self.__channel__(ch_name).join(support, peer)
 

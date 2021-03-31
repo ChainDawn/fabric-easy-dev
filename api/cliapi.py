@@ -39,7 +39,7 @@ class CliApiSupport(api.ApiSupport, ABC):
         if not os.path.exists(peer_binary):
             raise Exception("Peer binary not found: %s" % peer_binary)
 
-        self.config = api_config
+        self.api = api_config
 
         self.Dir = os.path.join(cache_dir, "cli-api-support")
         if not os.path.exists(self.Dir):
@@ -48,13 +48,13 @@ class CliApiSupport(api.ApiSupport, ABC):
         self.Peer = os.path.join(self.Dir, "peer")
         os.system("cp %s %s" % (peer_binary, self.Peer))
 
-        self.user_dir = os.path.join(self.Dir, self.config.User.MspId, self.config.User.Name)
+        self.signer_dir = os.path.join(self.Dir, self.api.Signer.MspId, self.api.Signer.Name)
 
-        if not os.path.exists(self.user_dir):
-            os.system("mkdir -p %s" % self.user_dir)
+        if not os.path.exists(self.signer_dir):
+            os.system("mkdir -p %s" % self.signer_dir)
 
-        __dump_cli_core_conf__(self.user_dir, self.config.User.MspId)
-        os.system("cp -r %s/* %s" % (self.config.User.Dir, self.user_dir))
+        __dump_cli_core_conf__(self.signer_dir, self.api.Signer.MspId)
+        os.system("cp -r %s/* %s" % (self.api.Signer.Dir, self.signer_dir))
 
     def channel(self, channel):
         return CliChannelApi(channel, self)
@@ -66,11 +66,11 @@ class CliApiSupport(api.ApiSupport, ABC):
         pass
 
     def __execute_api__(self, sub_command, func, args):
-        os.environ["FABRIC_CFG_PATH"] = self.user_dir
+        os.environ["FABRIC_CFG_PATH"] = self.signer_dir
         common_orderer_args = [
-            "--orderer", self.config.Ord.deploy_handler.Address,
+            "--orderer", self.api.Orderer.deploy_handler.Address,
             "--tls",
-            "--cafile", self.config.Ord.msp_holder.tls_ca(),
+            "--cafile", self.api.Orderer.msp_holder.tls_ca(),
         ]
         args += common_orderer_args
         return subprocess.call([self.Peer, sub_command, func, *args])
@@ -94,13 +94,13 @@ class CliChannelApi(api.ChannelApi, ABC):
     def update(self):
         pass
 
-    def fetch(self):
-        latest_block_file = os.path.join(self.support.Dir, "%s-latest.block" % self.channel.Name)
+    def fetch(self, fetch_type="oldest"):
+        block_file = os.path.join(self.support.Dir, "%s-%s.block" % (self.channel.Name, fetch_type))
         self.support.__execute_api__("channel", "fetch", [
-            "oldest", latest_block_file,
+            fetch_type, block_file,
             "--channelID", self.channel.Name,
         ])
-        return latest_block_file
+        return block_file
 
     def join(self, peer):
         latest_block_file = self.fetch()

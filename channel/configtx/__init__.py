@@ -52,8 +52,8 @@ class SystemChannelProfile(yaml.YAMLObject):
 
 class UserChannelProfile(yaml.YAMLObject):
 
-    def __init__(self, user_channel):
-        self.Application = Application([Organization(o.Name, o.MSPID, o.msp_dir()) for o in user_channel.Orgs])
+    def __init__(self, channel_orgs):
+        self.Application = Application([Organization(o.Name, o.MSPID, o.msp_dir()) for o in channel_orgs])
         self.Capabilities = __channel_capabilities__()
         self.Consortium = "SimpleConsortiums"
         self.Policies = __channel_policies__()
@@ -93,7 +93,7 @@ class ConfigTxSupport:
             raise ValueError("Con directory not exists: %s" % target_dir)
 
         profile_name = "%s-CreateChannel-Profile" % channel.Name
-        profiles = Profiles({profile_name: UserChannelProfile(channel)})
+        profiles = Profiles({profile_name: UserChannelProfile(channel.Orgs.values())})
         profiles.dump(os.path.join(target_dir, "configtx.yaml"))
 
         output = os.path.join(target_dir, "%s.tx" % channel.Name)
