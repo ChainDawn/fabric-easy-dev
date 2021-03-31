@@ -17,6 +17,7 @@
 import os
 import yaml
 from channel.configtx import ConfigTxSupport
+from orgconfig import find_node
 
 KEY_SYS_CHANNEL = "SystemChannel"
 KEY_USER_CHANNELS = "UserChannels"
@@ -36,10 +37,7 @@ class SystemChannel(dict):
         self.update(config)
 
         self.Orgs = [orgs_map[name] for name in self.Organizations]
-        self.Ords = [orgs_map[org_name].OrdererNodes[node_name]
-                     for ordorgs in self.Orderers
-                     for org_name in ordorgs
-                     for node_name in ordorgs[org_name]]
+        self.Ords = [find_node(orgs_map, orderer) for orderer in self.Orderers]
 
     def genesis(self, cache_dir, tx_support=__default_tx_support__()):
         return tx_support.generate_syschannel_genesis_block(self, cache_dir)

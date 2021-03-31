@@ -19,9 +19,7 @@ SystemChannel:
     - Org1
     - Org2
   Orderers:
-    - Org1:
-        - orderer0
-        - orderer1
-    - Org2:
-        - orderer0
-        - orderer1
+    - Org1.orderer0
+    - Org1.orderer1
+    - Org2.orderer0
+    - Org2.orderer2
