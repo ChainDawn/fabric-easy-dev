@@ -83,12 +83,13 @@ class UserChannel(dict):
     def create_tx(self, cache_dir, tx_support=__default_tx_support__()):
         return tx_support.generate_create_channel_tx(self, cache_dir)
 
-    def update_tx(self):
+    def update_tx(self, tx):
         pass
 
     def create(self, api_support):
         channel_api = api_support.channel(self)
-        channel_api.create()
+        tx = self.create_tx(channel_api.support.Dir)
+        channel_api.create(tx)
 
     def join(self, api_support, peer):
         channel_api = api_support.channel(self)

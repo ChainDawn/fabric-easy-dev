@@ -83,15 +83,15 @@ class CliChannelApi(api.ChannelApi, ABC):
         self.channel = channel
         self.support = api_support
 
-    def create(self):
+    def create(self, tx):
         block_file = os.path.join(self.support.Dir, "%s.block" % self.channel.Name)
         self.support.__execute_api__("channel", "create", [
             "--channelID", self.channel.Name,
-            "--file", self.channel.create_tx(self.support.Dir),
+            "--file", tx,
             "--outputBlock", block_file,
         ])
 
-    def update(self):
+    def update(self, tx):
         pass
 
     def fetch(self, fetch_type="oldest"):

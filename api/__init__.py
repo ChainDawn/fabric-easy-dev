@@ -52,11 +52,11 @@ class ApiSupport(metaclass=ABCMeta):
 class ChannelApi(metaclass=ABCMeta):
 
     @abstractmethod
-    def create(self):
+    def create(self, tx):
         pass
 
     @abstractmethod
-    def update(self):
+    def update(self, tx):
         pass
 
     def join(self, peers):
