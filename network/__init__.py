@@ -67,7 +67,8 @@ class Network:
         self.sys_channel.boot()
 
     def down(self):
-        pass
+        self.clear()
+        os.system("rm -fr %s" % self.Dir)
 
     def status(self):
         self.sys_channel.status()
