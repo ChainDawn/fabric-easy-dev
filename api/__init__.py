@@ -48,6 +48,10 @@ class ApiSupport(metaclass=ABCMeta):
     def chaincode(self):
         pass
 
+    @abstractmethod
+    def peer(self, peer):
+        pass
+
 
 class ChannelApi(metaclass=ABCMeta):
 
@@ -60,4 +64,15 @@ class ChannelApi(metaclass=ABCMeta):
         pass
 
     def join(self, peers):
+        pass
+
+
+class PeerApi(metaclass=ABCMeta):
+
+    @abstractmethod
+    def channel_list(self):
+        pass
+
+    @abstractmethod
+    def chaincode_installed(self):
         pass

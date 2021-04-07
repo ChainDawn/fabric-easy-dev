@@ -59,20 +59,24 @@ class CliApiSupport(api.ApiSupport, ABC):
     def channel(self, channel):
         return CliChannelApi(channel, self)
 
+    def peer(self, peer_addr):
+        return CliPeerApi(peer_addr, self)
+
     def chaincode_lifecycle(self):
         pass
 
     def chaincode(self):
         pass
 
-    def __execute_api__(self, sub_command, func, args):
+    def __execute_api__(self, sub_command, func, args, with_orderer=True):
         os.environ["FABRIC_CFG_PATH"] = self.signer_dir
-        common_orderer_args = [
-            "--orderer", self.api.Orderer.deploy_handler.Address,
-            "--tls",
-            "--cafile", self.api.Orderer.msp_holder.tls_ca(),
-        ]
-        args += common_orderer_args
+        if with_orderer:
+            common_orderer_args = [
+                "--orderer", self.api.Orderer.deploy_handler.Address,
+                "--tls",
+                "--cafile", self.api.Orderer.msp_holder.tls_ca(),
+            ]
+            args += common_orderer_args
         return subprocess.call([self.Peer, sub_command, func, *args])
 
 
@@ -108,3 +112,19 @@ class CliChannelApi(api.ChannelApi, ABC):
         self.support.__execute_api__("channel", "join", [
             "-b", latest_block_file,
         ])
+
+
+class CliPeerApi(api.PeerApi, ABC):
+
+    def __init__(self, peer_addr, api_support):
+        super(CliPeerApi, self).__init__()
+        self.peer_addr = peer_addr
+        self.support = api_support
+
+    def channel_list(self):
+        os.environ["CORE_PEER_ADDRESS"] = self.peer_addr
+        self.support.__execute_api__("channel", "list", [])
+
+    def chaincode_installed(self):
+        os.environ["CORE_PEER_ADDRESS"] = self.peer_addr
+        self.support.__execute_api__("chaincode", "list", ["--installed"])

@@ -39,6 +39,10 @@ class Network:
 
         self.channels = config_user_channels(self.orgs_map, channels_config)
 
+        self.api_cache_dir = os.path.join(target_dir, "api")
+        if not os.path.exists(self.api_cache_dir):
+            os.system("mkdir -p %s" % self.api_cache_dir)
+
     def echo_hosts(self, ip="127.0.0.1"):
         hosts_cache = ""
         for org in self.orgs_map.values():
@@ -90,3 +94,12 @@ class Network:
         support = api_support.cli_api_support(self.orgs_map, api_config_file, self.__channel_cache_dir__(ch_name))
         self.__channel__(ch_name).join(support, peer)
 
+    def list_channel(self, peer_name, api_config_file):
+        peer = find_node(self.orgs_map, peer_name)
+        support = api_support.cli_api_support(self.orgs_map, api_config_file, self.api_cache_dir)
+        support.peer(peer.deploy_handler.Address).channel_list()
+
+    def installed_chaincode(self, peer_name, api_config_file):
+        peer = find_node(self.orgs_map, peer_name)
+        support = api_support.cli_api_support(self.orgs_map, api_config_file, self.api_cache_dir)
+        support.peer(peer.deploy_handler.Address).chaincode_installed()
