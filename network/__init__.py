@@ -85,21 +85,21 @@ class Network:
             raise Exception("No channel configuration found: %s" % ch_name)
         return self.channels[ch_name]
 
-    def create_channel(self, ch_name, api_config_file):
+    def channel_create(self, ch_name, api_config_file):
         support = api_support.cli_api_support(self.orgs_map, api_config_file, self.__channel_cache_dir__(ch_name))
         self.__channel__(ch_name).create(support)
 
-    def join_channel(self, ch_name, peer_name, api_config_file):
+    def channel_join(self, ch_name, peer_name, api_config_file):
         peer = find_node(self.orgs_map, peer_name)
         support = api_support.cli_api_support(self.orgs_map, api_config_file, self.__channel_cache_dir__(ch_name))
         self.__channel__(ch_name).join(support, peer)
 
-    def list_channel(self, peer_name, api_config_file):
+    def channel_list(self, peer_name, api_config_file):
         peer = find_node(self.orgs_map, peer_name)
         support = api_support.cli_api_support(self.orgs_map, api_config_file, self.api_cache_dir)
         support.peer(peer.deploy_handler.Address).channel_list()
 
-    def installed_chaincode(self, peer_name, api_config_file):
+    def chaincode_list_installed(self, peer_name, api_config_file):
         peer = find_node(self.orgs_map, peer_name)
         support = api_support.cli_api_support(self.orgs_map, api_config_file, self.api_cache_dir)
         support.peer(peer.deploy_handler.Address).chaincode_installed()

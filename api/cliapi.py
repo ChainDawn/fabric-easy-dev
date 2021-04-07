@@ -111,7 +111,7 @@ class CliChannelApi(api.ChannelApi, ABC):
         os.environ["CORE_PEER_ADDRESS"] = peer.deploy_handler.Address
         self.support.__execute_api__("channel", "join", [
             "-b", latest_block_file,
-        ])
+        ], with_orderer=False)
 
 
 class CliPeerApi(api.PeerApi, ABC):
