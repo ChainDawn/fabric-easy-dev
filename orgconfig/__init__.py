@@ -79,6 +79,9 @@ class Organization(dict):
     def msp_dir(self):
         return self.msp_support.msp_holder.org_msp_dir
 
+    def admin(self):
+        return self.msp_support.msp_holder.admin_msp_holder()
+
 
 def config_organizations(config_file, target_dir):
     if not os.path.exists(config_file):

@@ -15,7 +15,6 @@
 # limitations under the License.
 #
 from abc import ABCMeta, abstractmethod
-from orgconfig import find_user, find_node
 
 API_KEY_ORDERER = "Orderer"
 API_KEY_ENDORSERS = "Endorsers"
@@ -23,21 +22,10 @@ API_KEY_COMMITTER = "Committers"
 API_KEY_SIGNER = "Signer"
 
 
-class ApiConfig:
-
-    def __init__(self, org_map, **config):
-        self.Signer = find_user(org_map, config[API_KEY_SIGNER])
-        self.Orderer = find_node(org_map, config[API_KEY_ORDERER])
-        if API_KEY_ENDORSERS in config:
-            self.Endorsers = [find_node(org_map, peer) for peer in config[API_KEY_ENDORSERS]]
-        if API_KEY_COMMITTER in config:
-            self.Committers = [find_node(org_map, peer) for peer in config[API_KEY_COMMITTER]]
-
-
 class ApiSupport(metaclass=ABCMeta):
 
     @abstractmethod
-    def channel(self, channel):
+    def channel(self, channel, orderer):
         pass
 
     @abstractmethod

@@ -85,21 +85,23 @@ class Network:
             raise Exception("No channel configuration found: %s" % ch_name)
         return self.channels[ch_name]
 
-    def channel_create(self, ch_name, api_config_file):
-        support = api_support.cli_api_support(self.orgs_map, api_config_file, self.__channel_cache_dir__(ch_name))
-        self.__channel__(ch_name).create(support)
+    def channel_create(self, ch_name, orderer_name):
+        orderer = find_node(self.orgs_map, orderer_name)
+        support = api_support.cli_api_support(orderer.Org.admin(), self.__channel_cache_dir__(ch_name))
+        self.__channel__(ch_name).create(support, orderer)
 
-    def channel_join(self, ch_name, peer_name, api_config_file):
+    def channel_join(self, ch_name, peer_name, orderer_name):
         peer = find_node(self.orgs_map, peer_name)
-        support = api_support.cli_api_support(self.orgs_map, api_config_file, self.__channel_cache_dir__(ch_name))
-        self.__channel__(ch_name).join(support, peer)
+        orderer = find_node(self.orgs_map, orderer_name)
+        support = api_support.cli_api_support(peer.Org.admin(), self.__channel_cache_dir__(ch_name))
+        self.__channel__(ch_name).join(support, peer, orderer)
 
-    def channel_list(self, peer_name, api_config_file):
+    def channel_list(self, peer_name):
         peer = find_node(self.orgs_map, peer_name)
-        support = api_support.cli_api_support(self.orgs_map, api_config_file, self.api_cache_dir)
+        support = api_support.cli_api_support(peer.Org.admin(), self.api_cache_dir)
         support.peer(peer.deploy_handler.Address).channel_list()
 
-    def chaincode_list_installed(self, peer_name, api_config_file):
+    def chaincode_list_installed(self, peer_name):
         peer = find_node(self.orgs_map, peer_name)
-        support = api_support.cli_api_support(self.orgs_map, api_config_file, self.api_cache_dir)
+        support = api_support.cli_api_support(peer.Org.admin(), self.api_cache_dir)
         support.peer(peer.deploy_handler.Address).chaincode_installed()

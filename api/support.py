@@ -14,24 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import yaml
-import os
-import api
 from api import cliapi
 
-KEY_API_CONFIG = "ApiConfig"
 
-
-def api_config(org_map, config_file):
-    if not os.path.exists(config_file):
-        raise ValueError("Config file not exists: %s" % config_file)
-    with open(config_file, 'r') as conf:
-        raw_conf = yaml.load(conf, yaml.CLoader)
-    if KEY_API_CONFIG not in raw_conf:
-        raise Exception("No organization found in config file: %s" % config_file)
-    return api.ApiConfig(org_map, **raw_conf[KEY_API_CONFIG])
-
-
-def cli_api_support(org_map, config_file, cache_dir):
-    config = api_config(org_map, config_file)
-    return cliapi.CliApiSupport(config, cache_dir)
+def cli_api_support(singer, cache_dir):
+    return cliapi.CliApiSupport(singer, cache_dir)

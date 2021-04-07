@@ -35,11 +35,11 @@ def __dump_cli_core_conf__(target_dir, mspid, template=env.CLI_CORE_YAML_TEMPLAT
 
 class CliApiSupport(api.ApiSupport, ABC):
 
-    def __init__(self, api_config, cache_dir, peer_binary=env.PEER):
+    def __init__(self, singer, cache_dir, peer_binary=env.PEER):
         if not os.path.exists(peer_binary):
             raise Exception("Peer binary not found: %s" % peer_binary)
 
-        self.api = api_config
+        self.Signer = singer
 
         self.Dir = os.path.join(cache_dir, "cli-api-support")
         if not os.path.exists(self.Dir):
@@ -48,16 +48,16 @@ class CliApiSupport(api.ApiSupport, ABC):
         self.Peer = os.path.join(self.Dir, "peer")
         os.system("cp %s %s" % (peer_binary, self.Peer))
 
-        self.signer_dir = os.path.join(self.Dir, self.api.Signer.MspId, self.api.Signer.Name)
+        self.signer_dir = os.path.join(self.Dir, self.Signer.MspId, self.Signer.Name)
 
         if not os.path.exists(self.signer_dir):
             os.system("mkdir -p %s" % self.signer_dir)
 
-        __dump_cli_core_conf__(self.signer_dir, self.api.Signer.MspId)
-        os.system("cp -r %s/* %s" % (self.api.Signer.Dir, self.signer_dir))
+        __dump_cli_core_conf__(self.signer_dir, self.Signer.MspId)
+        os.system("cp -r %s/* %s" % (self.Signer.Dir, self.signer_dir))
 
-    def channel(self, channel):
-        return CliChannelApi(channel, self)
+    def channel(self, channel, orderer):
+        return CliChannelApi(channel, self, orderer)
 
     def peer(self, peer_addr):
         return CliPeerApi(peer_addr, self)
@@ -68,13 +68,13 @@ class CliApiSupport(api.ApiSupport, ABC):
     def chaincode(self):
         pass
 
-    def __execute_api__(self, sub_command, func, args, with_orderer=True):
+    def __execute_api__(self, sub_command, func, args, orderer=None):
         os.environ["FABRIC_CFG_PATH"] = self.signer_dir
-        if with_orderer:
+        if orderer is not None:
             common_orderer_args = [
-                "--orderer", self.api.Orderer.deploy_handler.Address,
+                "--orderer", orderer.deploy_handler.Address,
                 "--tls",
-                "--cafile", self.api.Orderer.msp_holder.tls_ca(),
+                "--cafile", orderer.msp_holder.tls_ca(),
             ]
             args += common_orderer_args
         return subprocess.call([self.Peer, sub_command, func, *args])
@@ -82,10 +82,11 @@ class CliApiSupport(api.ApiSupport, ABC):
 
 class CliChannelApi(api.ChannelApi, ABC):
 
-    def __init__(self, channel, api_support):
+    def __init__(self, channel, api_support, orderer):
         super(CliChannelApi, self).__init__()
         self.channel = channel
         self.support = api_support
+        self.orderer = orderer
 
     def create(self, tx):
         block_file = os.path.join(self.support.Dir, "%s.block" % self.channel.Name)
@@ -93,7 +94,7 @@ class CliChannelApi(api.ChannelApi, ABC):
             "--channelID", self.channel.Name,
             "--file", tx,
             "--outputBlock", block_file,
-        ])
+        ], orderer=self.orderer)
 
     def update(self, tx):
         pass
@@ -103,7 +104,7 @@ class CliChannelApi(api.ChannelApi, ABC):
         self.support.__execute_api__("channel", "fetch", [
             fetch_type, block_file,
             "--channelID", self.channel.Name,
-        ])
+        ], orderer=self.orderer)
         return block_file
 
     def join(self, peer):
@@ -111,7 +112,7 @@ class CliChannelApi(api.ChannelApi, ABC):
         os.environ["CORE_PEER_ADDRESS"] = peer.deploy_handler.Address
         self.support.__execute_api__("channel", "join", [
             "-b", latest_block_file,
-        ], with_orderer=False)
+        ])
 
 
 class CliPeerApi(api.PeerApi, ABC):

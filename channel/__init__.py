@@ -86,13 +86,13 @@ class UserChannel(dict):
     def update_tx(self, tx):
         pass
 
-    def create(self, api_support):
-        channel_api = api_support.channel(self)
+    def create(self, api_support, orderer):
+        channel_api = api_support.channel(self, orderer)
         tx = self.create_tx(channel_api.support.Dir)
         channel_api.create(tx)
 
-    def join(self, api_support, peer):
-        channel_api = api_support.channel(self)
+    def join(self, api_support, peer, orderer):
+        channel_api = api_support.channel(self, orderer)
         channel_api.join(peer)
 
 
