@@ -57,7 +57,7 @@ class Organization(dict):
 
         self.msp_support = msp_support(self)
 
-        self.logger.info("Config organization: %s, mspid: %s" % (self.Name, self.MSPID))
+        self.logger.debug("Config organization: %s, mspid: %s" % (self.Name, self.MSPID))
         self.logger.debug("\tOrganization directory: %s" % self.Dir)
 
         self.msp_support.create_msp()

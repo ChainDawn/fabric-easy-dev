@@ -42,7 +42,7 @@ You should execute this script as:
 
 
 def execute_network(method, config_file="./example-network.yaml", target_dir=os.path.join(env.TARGET_DIR, "example")):
-    logger.info("Start config fabric network")
+    logger.debug("Start config fabric network")
     logger.debug("\tFabric version: v%s" % env.FABRIC_VERSION)
     logger.debug("\tNetwork organizations config file: %s" % config_file)
     logger.debug("\tNetwork system channel config file: %s" % config_file)

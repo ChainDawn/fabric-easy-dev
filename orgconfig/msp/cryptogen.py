@@ -143,7 +143,7 @@ class StaticMspSupport:
 
     def create_msp(self, auto_extend=False):
         if self.msp_holder.check():
-            self.logger.info("Msp files already exists: %s" % self.msp_holder.org_crypto_dir)
+            self.logger.debug("Msp files already exists: %s" % self.msp_holder.org_crypto_dir)
             if auto_extend:
                 self.msp_generator.extend(self)
             return

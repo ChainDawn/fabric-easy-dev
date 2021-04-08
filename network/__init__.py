@@ -74,8 +74,12 @@ class Network:
         self.clear()
         os.system("rm -fr %s" % self.Dir)
 
-    def status(self):
-        self.sys_channel.status()
+    def status(self, node_name=None):
+        if node_name is None:
+            self.sys_channel.status()
+        else:
+            node = find_node(self.orgs_map, node_name)
+            node.deploy_handler.display()
 
     def __channel_cache_dir__(self, ch_name):
         return os.path.join(self.channel_cache_dir, ch_name)

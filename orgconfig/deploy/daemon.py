@@ -36,7 +36,7 @@ class DaemonProcessHandler:
         self.logger = logging.getLogger("process")
 
         if not re_config and self.__bootable__() and self.__stoppable__():
-            self.logger.info("Scripts for process [%s] already exists. No need to re-generate." % p_label)
+            self.logger.debug("Scripts for process [%s] already exists. No need to re-generate." % p_label)
             return
 
         if not os.path.exists(self.Dir):

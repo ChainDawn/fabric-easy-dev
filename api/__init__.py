@@ -51,7 +51,8 @@ class ChannelApi(metaclass=ABCMeta):
     def update(self, tx):
         pass
 
-    def join(self, peers):
+    @abstractmethod
+    def join(self, peer):
         pass
 
 
@@ -63,4 +64,8 @@ class PeerApi(metaclass=ABCMeta):
 
     @abstractmethod
     def chaincode_installed(self):
+        pass
+
+    @abstractmethod
+    def chaincode_install(self):
         pass
