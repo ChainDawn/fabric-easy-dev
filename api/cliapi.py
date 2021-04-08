@@ -129,3 +129,6 @@ class CliPeerApi(api.PeerApi, ABC):
     def chaincode_installed(self):
         os.environ["CORE_PEER_ADDRESS"] = self.peer_addr
         self.support.__execute_api__("chaincode", "list", ["--installed"])
+
+    def chaincode_install(self):
+        pass

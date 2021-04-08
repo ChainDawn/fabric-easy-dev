@@ -63,3 +63,7 @@ UserChannels:
     Organizations:
       - Org1
       - Org2
+  mychannel:
+    Organizations:
+      - Org1
+      - Org2

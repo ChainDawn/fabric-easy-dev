@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 import os
+import time
+
 from orgconfig import config_organizations, find_node
 from channel import config_sys_channel, config_user_channels
 from api import support as api_support
@@ -69,6 +71,19 @@ class Network:
     def up(self):
         self.sys_channel.deploy(self.sys_channel_cache_dir)
         self.sys_channel.boot()
+
+        time.sleep(15)
+
+        orderer = self.sys_channel.Ords[0]
+        for ch_name in self.channels:
+            support = api_support.cli_api_support(orderer.Org.admin(), self.__channel_cache_dir__(ch_name))
+            channel = self.__channel__(ch_name)
+            channel.create(support, orderer)
+
+            for org in channel.Orgs.values():
+                support = api_support.cli_api_support(org.admin(), self.__channel_cache_dir__(ch_name))
+                for peer in org.PeerNodes.values():
+                    channel.join(support, peer, orderer)
 
     def down(self):
         self.clear()
