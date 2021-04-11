@@ -68,8 +68,7 @@ class CliApiSupport(api.ApiSupport, ABC):
     def chaincode(self):
         pass
 
-    def __execute_api__(self, sub_command, func, args, orderer=None):
-        os.environ["FABRIC_CFG_PATH"] = self.signer_dir
+    def __execute_api__(self, sub_command, func, args, orderer=None, envs=None):
         if orderer is not None:
             common_orderer_args = [
                 "--orderer", orderer.deploy_handler.Address,
@@ -77,7 +76,10 @@ class CliApiSupport(api.ApiSupport, ABC):
                 "--cafile", orderer.msp_holder.tls_ca(),
             ]
             args += common_orderer_args
-        return subprocess.call([self.Peer, sub_command, func, *args])
+        sub_env = {"FABRIC_CFG_PATH": self.signer_dir}
+        if envs is not None:
+            sub_env = {**envs, **sub_env}
+        return subprocess.call([self.Peer, sub_command, func, *args], env=sub_env)
 
 
 class CliChannelApi(api.ChannelApi, ABC):
@@ -109,10 +111,9 @@ class CliChannelApi(api.ChannelApi, ABC):
 
     def join(self, peer):
         latest_block_file = self.fetch()
-        os.environ["CORE_PEER_ADDRESS"] = peer.deploy_handler.Address
         self.support.__execute_api__("channel", "join", [
             "-b", latest_block_file,
-        ])
+        ], envs={"CORE_PEER_ADDRESS": peer.deploy_handler.Address})
 
 
 class CliPeerApi(api.PeerApi, ABC):
@@ -124,11 +125,13 @@ class CliPeerApi(api.PeerApi, ABC):
 
     def channel_list(self):
         os.environ["CORE_PEER_ADDRESS"] = self.peer_addr
-        self.support.__execute_api__("channel", "list", [])
+        self.support.__execute_api__("channel", "list", [], envs={"CORE_PEER_ADDRESS": self.peer_addr})
+
+    def channel_is_joined(self, ch_name):
+        pass
 
     def chaincode_installed(self):
-        os.environ["CORE_PEER_ADDRESS"] = self.peer_addr
-        self.support.__execute_api__("chaincode", "list", ["--installed"])
+        self.support.__execute_api__("chaincode", "list", ["--installed"],  envs={"CORE_PEER_ADDRESS": self.peer_addr})
 
     def chaincode_install(self):
         pass
