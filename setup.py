@@ -20,6 +20,7 @@ import os
 import subprocess
 
 from env import PLATFORM, FABRIC_VERSION, CACHE_DIR, FABRIC_BIN_DIR
+from utils.fileutil import mkdir_if_need
 
 
 def wget(source_url, cache_dir=CACHE_DIR):
@@ -42,8 +43,7 @@ def download_fabric_release_binaries(cache_dir=CACHE_DIR, target_dir=FABRIC_BIN_
     if binaries_tar_file is None:
         print("Fabric binaries download failed: %s" % download_url)
 
-    if not os.path.exists(target_dir):
-        subprocess.call(["mkdir", "-p", target_dir])
+    mkdir_if_need(target_dir)
     subprocess.call(["tar", "-zxvf", binaries_tar_file, "-C", target_dir])
 
 

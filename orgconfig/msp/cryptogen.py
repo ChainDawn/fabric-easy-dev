@@ -20,6 +20,7 @@ import yaml
 import logging
 
 import env
+from utils.fileutil import mkdir_if_need
 
 
 class CryptoConfigItem(yaml.YAMLObject):
@@ -138,8 +139,7 @@ class StaticMspSupport:
         self.msp_holder = StaticOrganizationMspHolder(org_domain=org.Domain, msp_id=org.MSPID, msp_dir=self.Dir)
         self.msp_generator = CryptoGenerator()
 
-        if not os.path.exists(self.Dir):
-            os.system("mkdir -p %s" % self.Dir)
+        mkdir_if_need(self.Dir)
 
     def create_msp(self, auto_extend=False):
         if self.msp_holder.check():

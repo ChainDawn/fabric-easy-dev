@@ -67,3 +67,9 @@ UserChannels:
     Organizations:
       - Org1
       - Org2
+
+UserChaincodes:
+  transfer-basic:
+    Path: fabric-samples/asset-transfer-basic/chaincode-go
+    Language: golang
+    Version: 1.0

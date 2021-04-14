@@ -19,6 +19,7 @@ import env
 import logging
 from orgconfig.deploy.daemon import DaemonProcessHandler
 from orgconfig.deploy.nodeconfig import config_core_yaml, config_orderer_yaml
+from utils.fileutil import mkdir_if_need
 
 
 class NodeDeployHandler:
@@ -27,9 +28,7 @@ class NodeDeployHandler:
         self.Node = node
         self.Dir = os.path.join(deploy_dir, self.Node.Name)
         self.logger = logging.getLogger("deploy")
-        if not os.path.exists(self.Dir):
-            os.system("mkdir -p %s" % self.Dir)
-
+        mkdir_if_need(self.Dir)
         os.system("cp -r %s/* %s" % (self.Node.msp_holder.Dir, self.Dir))
 
     def display(self):

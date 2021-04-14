@@ -22,6 +22,8 @@ import subprocess
 import yaml
 import env
 
+from utils.fileutil import mkdir_if_need
+
 
 def __dump_cli_core_conf__(target_dir, mspid, template=env.CLI_CORE_YAML_TEMPLATE):
     if not os.path.exists(template):
@@ -42,16 +44,14 @@ class CliApiSupport(api.ApiSupport, ABC):
         self.Signer = singer
 
         self.Dir = os.path.join(cache_dir, "cli-api-support")
-        if not os.path.exists(self.Dir):
-            os.system("mkdir -p %s" % self.Dir)
+        mkdir_if_need(self.Dir)
 
         self.Peer = os.path.join(self.Dir, "peer")
         os.system("cp %s %s" % (peer_binary, self.Peer))
 
         self.signer_dir = os.path.join(self.Dir, self.Signer.MspId, self.Signer.Name)
 
-        if not os.path.exists(self.signer_dir):
-            os.system("mkdir -p %s" % self.signer_dir)
+        mkdir_if_need(self.signer_dir)
 
         __dump_cli_core_conf__(self.signer_dir, self.Signer.MspId)
         os.system("cp -r %s/* %s" % (self.Signer.Dir, self.signer_dir))
@@ -124,14 +124,19 @@ class CliPeerApi(api.PeerApi, ABC):
         self.support = api_support
 
     def channel_list(self):
-        os.environ["CORE_PEER_ADDRESS"] = self.peer_addr
-        self.support.__execute_api__("channel", "list", [], envs={"CORE_PEER_ADDRESS": self.peer_addr})
+        self.__execute_with_peer__("channel", "list", [])
 
     def channel_is_joined(self, ch_name):
         pass
 
+    def chaincode_package(self, chaincode, cache_dir):
+        pass
+
     def chaincode_installed(self):
-        self.support.__execute_api__("chaincode", "list", ["--installed"],  envs={"CORE_PEER_ADDRESS": self.peer_addr})
+        self.__execute_with_peer__("chaincode", "list", ["--installed"])
 
     def chaincode_install(self):
         pass
+
+    def __execute_with_peer__(self, command, subcommand, args):
+        self.support.__execute_api__(command, subcommand, args, envs={"CORE_PEER_ADDRESS": self.peer_addr})

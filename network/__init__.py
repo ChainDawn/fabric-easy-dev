@@ -19,31 +19,28 @@ import time
 from orgconfig import config_organizations, find_node
 from channel import config_sys_channel, config_user_channels
 from api import support as api_support
+from utils.fileutil import mkdir_if_need
 
 
 class Network:
 
     def __init__(self, orgs_config, sys_channel_config, channels_config, target_dir):
         self.Dir = target_dir
-        if not os.path.exists(self.Dir):
-            os.system("mkdir -p %s" % self.Dir)
+        mkdir_if_need(self.Dir)
 
         self.orgs_map = config_organizations(orgs_config, target_dir)
         self.sys_channel = config_sys_channel(self.orgs_map, sys_channel_config)
 
         self.sys_channel_cache_dir = os.path.join(target_dir, self.sys_channel.Name)
-        if not os.path.exists(self.sys_channel_cache_dir):
-            os.system("mkdir -p %s" % self.sys_channel_cache_dir)
+        mkdir_if_need(self.sys_channel_cache_dir)
 
         self.channel_cache_dir = os.path.join(target_dir, "channels")
-        if not os.path.exists(self.channel_cache_dir):
-            os.system("mkdir -p %s" % self.channel_cache_dir)
+        mkdir_if_need(self.channel_cache_dir)
 
         self.channels = config_user_channels(self.orgs_map, channels_config)
 
         self.api_cache_dir = os.path.join(target_dir, "api")
-        if not os.path.exists(self.api_cache_dir):
-            os.system("mkdir -p %s" % self.api_cache_dir)
+        mkdir_if_need(self.api_cache_dir)
 
     def echo_hosts(self, ip="127.0.0.1"):
         hosts_cache = ""

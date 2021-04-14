@@ -19,6 +19,7 @@ import os
 import yaml
 from orgconfig.msp import static_msp_support
 from orgconfig.deploy import deploy_builder
+from utils.fileutil import mkdir_if_need
 
 KEY_ORGANIZATIONS = "Organizations"
 KEY_PEERS = "Peers"
@@ -52,8 +53,7 @@ class Organization(dict):
         self.logger = logging.getLogger("organization")
 
         self.Dir = os.path.join(target_dir, self.Name)
-        if not os.path.exists(self.Dir):
-            os.system("mkdir -p %s" % self.Dir)
+        mkdir_if_need(self.Dir)
 
         self.msp_support = msp_support(self)
 
