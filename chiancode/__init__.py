@@ -24,8 +24,8 @@ class UserChaincode(dict):
 
     def __init__(self, name, values):
         super().__init__()
-        self.update(values)
         self.Name = name
+        self.update(values)
 
 
 def config_chaincodes(raw_conf):

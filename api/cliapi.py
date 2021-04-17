@@ -79,7 +79,20 @@ class CliApiSupport(api.ApiSupport, ABC):
         sub_env = {"FABRIC_CFG_PATH": self.signer_dir}
         if envs is not None:
             sub_env = {**envs, **sub_env}
-        return subprocess.call([self.Peer, sub_command, func, *args], env=sub_env)
+        return subprocess.run([self.Peer, sub_command, func, *args], env=sub_env)
+
+    def __execute_api_join_env__(self, sub_command, func, args, orderer=None, envs=None):
+        if orderer is not None:
+            common_orderer_args = [
+                "--orderer", orderer.deploy_handler.Address,
+                "--tls",
+                "--cafile", orderer.msp_holder.tls_ca(),
+            ]
+            args += common_orderer_args
+        os.putenv("FABRIC_CFG_PATH", self.signer_dir)
+        for e_key in envs:
+            os.putenv(e_key, envs[e_key])
+        return subprocess.run([self.Peer, sub_command, func, *args])
 
 
 class CliChannelApi(api.ChannelApi, ABC):
@@ -132,13 +145,12 @@ class CliPeerApi(api.PeerApi, ABC):
     def chaincode_package(self, chaincode, cache_dir):
         label = "%s.%s" % (chaincode.Name, chaincode.Version)
         target_package = os.path.join(cache_dir, "%s.tar.gz" % label)
-        subprocess.run([
-            self.support.peer, "lifecycle", "chaincode", "package",
-            target_package,
+        self.__execute_with_peer__("lifecycle", "chaincode", [
+            "package", target_package,
             "--path", chaincode.Path,
             "--lang", chaincode.Language,
             "--label", label
-        ])
+        ], join_env=True)
 
     def chaincode_installed(self):
         self.__execute_with_peer__("chaincode", "list", ["--installed"])
@@ -146,5 +158,8 @@ class CliPeerApi(api.PeerApi, ABC):
     def chaincode_install(self):
         pass
 
-    def __execute_with_peer__(self, command, subcommand, args):
-        self.support.__execute_api__(command, subcommand, args, envs={"CORE_PEER_ADDRESS": self.peer_addr})
+    def __execute_with_peer__(self, command, subcommand, args, join_env=False):
+        if join_env:
+            return self.support.__execute_api_join_env__(command, subcommand, args,
+                                                         envs={"CORE_PEER_ADDRESS": self.peer_addr})
+        return self.support.__execute_api__(command, subcommand, args, envs={"CORE_PEER_ADDRESS": self.peer_addr})

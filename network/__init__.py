@@ -140,3 +140,8 @@ class Network:
         peer = find_node(self.orgs_map, peer_name)
         support = api_support.cli_api_support(peer.Org.admin(), self.api_cache_dir)
         support.peer(peer.deploy_handler.Address).chaincode_installed()
+
+    def chaincode_package(self, peer_name, cc_name):
+        peer = find_node(self.orgs_map, peer_name)
+        support = api_support.cli_api_support(peer.Org.admin(), self.api_cache_dir)
+        support.peer(peer.deploy_handler.Address).chaincode_package(self.chaincodes[cc_name], self.chaincode_cache_dir)
