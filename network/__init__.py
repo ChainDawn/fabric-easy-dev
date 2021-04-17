@@ -15,29 +15,48 @@
 #
 import os
 import time
+import yaml
 
-from orgconfig import config_organizations, find_node
-from channel import config_sys_channel, config_user_channels
+from orgconfig import config_organizations, find_node, KEY_ORGANIZATIONS
+from channel import config_sys_channel, config_user_channels, KEY_SYS_CHANNEL, KEY_USER_CHANNELS
+from chiancode import config_chaincodes, KEY_USER_CHAINCODES
 from api import support as api_support
 from utils.fileutil import mkdir_if_need
 
 
 class Network:
 
-    def __init__(self, orgs_config, sys_channel_config, channels_config, target_dir):
+    def __init__(self, config_file, target_dir):
+
+        if not os.path.exists(config_file):
+            raise ValueError("Config file not exists: %s" % config_file)
+        with open(config_file, 'r') as conf:
+            raw_conf = yaml.load(conf, yaml.CLoader)
+
         self.Dir = target_dir
         mkdir_if_need(self.Dir)
 
-        self.orgs_map = config_organizations(orgs_config, target_dir)
-        self.sys_channel = config_sys_channel(self.orgs_map, sys_channel_config)
+        if KEY_ORGANIZATIONS not in raw_conf:
+            raise Exception("No organization found in config file: %s" % config_file)
+        self.orgs_map = config_organizations(raw_conf[KEY_ORGANIZATIONS], target_dir)
 
+        if KEY_SYS_CHANNEL not in raw_conf:
+            raise Exception("No system channel found in config file: %s" % config_file)
+        self.sys_channel = config_sys_channel(self.orgs_map, raw_conf[KEY_SYS_CHANNEL])
         self.sys_channel_cache_dir = os.path.join(target_dir, self.sys_channel.Name)
         mkdir_if_need(self.sys_channel_cache_dir)
 
-        self.channel_cache_dir = os.path.join(target_dir, "channels")
+        self.channel_cache_dir = os.path.join(target_dir, "user-channels")
         mkdir_if_need(self.channel_cache_dir)
 
-        self.channels = config_user_channels(self.orgs_map, channels_config)
+        if KEY_USER_CHANNELS in raw_conf:
+            self.channels = config_user_channels(self.orgs_map, raw_conf[KEY_USER_CHANNELS])
+
+        self.chaincode_cache_dir = os.path.join(target_dir, "user-chaincodes")
+        mkdir_if_need(self.chaincode_cache_dir)
+
+        if KEY_USER_CHAINCODES in raw_conf:
+            self.chaincodes = config_chaincodes(raw_conf[KEY_USER_CHAINCODES])
 
         self.api_cache_dir = os.path.join(target_dir, "api")
         mkdir_if_need(self.api_cache_dir)

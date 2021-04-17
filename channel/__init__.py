@@ -96,22 +96,10 @@ class UserChannel(dict):
         channel_api.join(peer)
 
 
-def config_sys_channel(orgs_map, config_file):
-    if not os.path.exists(config_file):
-        raise ValueError("Config file not exists: %s" % config_file)
-    with open(config_file, 'r') as conf:
-        raw_conf = yaml.load(conf, yaml.CLoader)
-    if KEY_SYS_CHANNEL not in raw_conf:
-        raise Exception("No system channel found in config file: %s" % config_file)
-    return SystemChannel(orgs_map, **raw_conf[KEY_SYS_CHANNEL])
+def config_sys_channel(orgs_map, raw_conf):
+    return SystemChannel(orgs_map, **raw_conf)
 
 
-def config_user_channels(orgs_map, config_file):
-    if not os.path.exists(config_file):
-        raise ValueError("Config file not exists: %s" % config_file)
-    with open(config_file, 'r') as conf:
-        raw_conf = yaml.load(conf, yaml.CLoader)
-    if KEY_USER_CHANNELS not in raw_conf:
-        raise Exception("No system channel found in config file: %s" % config_file)
-    return {ch_name: UserChannel(orgs_map, ch_name, **raw_conf[KEY_USER_CHANNELS][ch_name])
-            for ch_name in raw_conf[KEY_USER_CHANNELS].keys()}
+def config_user_channels(orgs_map, raw_conf):
+    return {ch_name: UserChannel(orgs_map, ch_name, **raw_conf[ch_name])
+            for ch_name in raw_conf.keys()}

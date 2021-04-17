@@ -83,14 +83,8 @@ class Organization(dict):
         return self.msp_support.msp_holder.admin_msp_holder()
 
 
-def config_organizations(config_file, target_dir):
-    if not os.path.exists(config_file):
-        raise ValueError("Config file not exists: %s" % config_file)
-    with open(config_file, 'r') as conf:
-        raw_conf = yaml.load(conf, yaml.CLoader)
-    if KEY_ORGANIZATIONS not in raw_conf:
-        raise Exception("No organization found in config file: %s" % config_file)
-    return {org["Name"]: Organization(target_dir, **org) for org in raw_conf[KEY_ORGANIZATIONS]}
+def config_organizations(raw_conf, target_dir):
+    return {org["Name"]: Organization(target_dir, **org) for org in raw_conf}
 
 
 def find_node(org_map, node):

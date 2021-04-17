@@ -48,7 +48,7 @@ def execute_network(method, config_file="./example-network.yaml", target_dir=os.
     logger.debug("\tNetwork system channel config file: %s" % config_file)
     logger.debug("\tNetwork config target directory: %s" % target_dir)
 
-    network = Network(orgs_config=config_file, sys_channel_config=config_file, channels_config=config_file, target_dir=target_dir)
+    network = Network(config_file=config_file, target_dir=target_dir)
     Network.__dict__[method](network, *sys.argv[2:])
 
 
