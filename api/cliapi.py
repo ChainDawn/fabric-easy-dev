@@ -130,7 +130,15 @@ class CliPeerApi(api.PeerApi, ABC):
         pass
 
     def chaincode_package(self, chaincode, cache_dir):
-        pass
+        label = "%s.%s" % (chaincode.Name, chaincode.Version)
+        target_package = os.path.join(cache_dir, "%s.tar.gz" % label)
+        subprocess.run([
+            self.support.peer, "lifecycle", "chaincode", "package",
+            target_package,
+            "--path", chaincode.Path,
+            "--lang", chaincode.Language,
+            "--label", label
+        ])
 
     def chaincode_installed(self):
         self.__execute_with_peer__("chaincode", "list", ["--installed"])
