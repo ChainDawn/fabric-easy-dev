@@ -145,12 +145,12 @@ class CliPeerApi(api.PeerApi, ABC):
     def chaincode_package(self, chaincode, cache_dir):
         label = "%s.%s" % (chaincode.Name, chaincode.Version)
         target_package = os.path.join(cache_dir, "%s.tar.gz" % label)
-        self.__execute_with_peer__("lifecycle", "chaincode", [
+        self.__execute_with_peer_join_env("lifecycle", "chaincode", [
             "package", target_package,
             "--path", chaincode.Path,
             "--lang", chaincode.Language,
             "--label", label
-        ], join_env=True)
+        ])
 
     def chaincode_installed(self):
         self.__execute_with_peer__("chaincode", "list", ["--installed"])
@@ -158,8 +158,8 @@ class CliPeerApi(api.PeerApi, ABC):
     def chaincode_install(self):
         pass
 
-    def __execute_with_peer__(self, command, subcommand, args, join_env=False):
-        if join_env:
-            return self.support.__execute_api_join_env__(command, subcommand, args,
-                                                         envs={"CORE_PEER_ADDRESS": self.peer_addr})
+    def __execute_with_peer_join_env(self, command, subcommand, args):
+        return self.support.__execute_api_join_env__(command, subcommand, args, envs={"CORE_PEER_ADDRESS": self.peer_addr})
+
+    def __execute_with_peer__(self, command, subcommand, args):
         return self.support.__execute_api__(command, subcommand, args, envs={"CORE_PEER_ADDRESS": self.peer_addr})
