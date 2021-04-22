@@ -67,5 +67,5 @@ class PeerApi(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def chaincode_install(self):
+    def chaincode_install(self, chaincode):
         pass

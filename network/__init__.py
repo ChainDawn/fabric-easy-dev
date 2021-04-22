@@ -52,9 +52,6 @@ class Network:
         if KEY_USER_CHANNELS in raw_conf:
             self.channels = config_user_channels(self.orgs_map, raw_conf[KEY_USER_CHANNELS])
 
-        self.chaincode_cache_dir = os.path.join(target_dir, "user-chaincodes")
-        mkdir_if_need(self.chaincode_cache_dir)
-
         if KEY_USER_CHAINCODES in raw_conf:
             self.chaincodes = config_chaincodes(raw_conf[KEY_USER_CHAINCODES])
 
@@ -141,7 +138,7 @@ class Network:
         support = api_support.cli_api_support(peer.Org.admin(), self.api_cache_dir)
         support.peer(peer.deploy_handler.Address).chaincode_installed()
 
-    def chaincode_package(self, peer_name, cc_name):
+    def chaincode_install(self, peer_name, cc_name):
         peer = find_node(self.orgs_map, peer_name)
         support = api_support.cli_api_support(peer.Org.admin(), self.api_cache_dir)
-        support.peer(peer.deploy_handler.Address).chaincode_package(self.chaincodes[cc_name], self.chaincode_cache_dir)
+        support.peer(peer.deploy_handler.Address).chaincode_install(self.chaincodes[cc_name])

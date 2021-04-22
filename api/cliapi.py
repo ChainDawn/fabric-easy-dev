@@ -151,12 +151,14 @@ class CliPeerApi(api.PeerApi, ABC):
             "--lang", chaincode.Language,
             "--label", label
         ])
+        return target_package
 
     def chaincode_installed(self):
         self.__execute_with_peer__("chaincode", "list", ["--installed"])
 
-    def chaincode_install(self):
-        pass
+    def chaincode_install(self, chaincode):
+        cc_package = self.chaincode_package(chaincode, self.support.Dir)
+        self.__execute_with_peer__("lifecycle", "chaincode", ["install", cc_package])
 
     def __execute_with_peer_join_env(self, command, subcommand, args):
         return self.support.__execute_api_join_env__(command, subcommand, args, envs={"CORE_PEER_ADDRESS": self.peer_addr})
