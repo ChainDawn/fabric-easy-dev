@@ -154,7 +154,7 @@ class CliPeerApi(api.PeerApi, ABC):
         return target_package
 
     def chaincode_installed(self):
-        self.__execute_with_peer__("chaincode", "list", ["--installed"])
+        self.__execute_with_peer__("lifecycle", "chaincode", ["queryinstalled"])
 
     def chaincode_install(self, chaincode):
         cc_package = self.chaincode_package(chaincode, self.support.Dir)
