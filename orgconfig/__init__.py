@@ -39,6 +39,7 @@ class Node(dict):
         self.Domain = "%s.%s" % (self.Name, self.Org.Domain)
         self.msp_holder = msp_holder
         self.deploy_handler = deploy_build(self, self.Org.Dir)
+        self.FullName = "%s.%s" % (self.Org.Name, self.Name)
 
 
 class Organization(dict):

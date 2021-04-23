@@ -62,10 +62,10 @@ class CliApiSupport(api.ApiSupport, ABC):
     def peer(self, peer_addr):
         return CliPeerApi(peer_addr, self)
 
-    def chaincode_lifecycle(self):
+    def chaincode_lifecycle(self, chaincode, peer, orderer=None):
         pass
 
-    def chaincode(self):
+    def chaincode(self, chaincode, peers, orderer=None):
         pass
 
     def __execute_api__(self, sub_command, func, args, orderer=None, envs=None):
@@ -127,6 +127,9 @@ class CliChannelApi(api.ChannelApi, ABC):
         self.support.__execute_api__("channel", "join", [
             "-b", latest_block_file,
         ], envs={"CORE_PEER_ADDRESS": peer.deploy_handler.Address})
+
+    def list(self, peer):
+        pass
 
     def approve(self, peer, chaincode, package_id):
         self.support.__execute_api__("lifecycle", "chaincode", [

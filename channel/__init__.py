@@ -14,8 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import os
-import yaml
 from channel.configtx import ConfigTxSupport
 from orgconfig import find_node
 
@@ -85,15 +83,6 @@ class UserChannel(dict):
 
     def update_tx(self, tx):
         pass
-
-    def create(self, api_support, orderer):
-        channel_api = api_support.channel(self, orderer)
-        tx = self.create_tx(channel_api.support.Dir)
-        channel_api.create(tx)
-
-    def join(self, api_support, peer, orderer):
-        channel_api = api_support.channel(self, orderer)
-        channel_api.join(peer)
 
 
 def config_sys_channel(orgs_map, raw_conf):

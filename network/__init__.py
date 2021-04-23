@@ -89,14 +89,11 @@ class Network:
 
         orderer = self.sys_channel.Ords[0]
         for ch_name in self.channels:
-            support = api_support.cli_api_support(orderer.Org.admin(), self.__channel_cache_dir__(ch_name))
-            channel = self.__channel__(ch_name)
-            channel.create(support, orderer)
-
-            for org in channel.Orgs.values():
-                support = api_support.cli_api_support(org.admin(), self.__channel_cache_dir__(ch_name))
+            self.channel_create(ch_name, orderer.FullName)
+            ch = self.__channel__(ch_name)
+            for org in ch.Orgs.values():
                 for peer in org.PeerNodes.values():
-                    channel.join(support, peer, orderer)
+                    self.channel_join(ch_name, peer.FullName, orderer.FullName)
 
     def down(self):
         self.clear()
@@ -114,19 +111,29 @@ class Network:
 
     def __channel__(self, ch_name):
         if ch_name not in self.channels:
-            raise Exception("No channel configuration found: %s" % ch_name)
+            raise Exception("No such channel configuration: %s" % ch_name)
         return self.channels[ch_name]
+
+    def __chaincode__(self, cc_name):
+        if cc_name not in self.chaincodes:
+            raise Exception("No such chaincode configuration: %s" % cc_name)
+        return self.chaincodes[cc_name]
 
     def channel_create(self, ch_name, orderer_name):
         orderer = find_node(self.orgs_map, orderer_name)
         support = api_support.cli_api_support(orderer.Org.admin(), self.__channel_cache_dir__(ch_name))
-        self.__channel__(ch_name).create(support, orderer)
+        ch = self.__channel__(ch_name)
+        channel_api = support.channel(ch, orderer)
+        tx = ch.create_tx(channel_api.support.Dir)
+        channel_api.create(tx)
 
     def channel_join(self, ch_name, peer_name, orderer_name):
         peer = find_node(self.orgs_map, peer_name)
         orderer = find_node(self.orgs_map, orderer_name)
         support = api_support.cli_api_support(peer.Org.admin(), self.__channel_cache_dir__(ch_name))
-        self.__channel__(ch_name).join(support, peer, orderer)
+        ch = self.__channel__(ch_name)
+        ch_api = support.channel(ch, orderer)
+        ch_api.join(peer)
 
     def channel_list(self, peer_name):
         peer = find_node(self.orgs_map, peer_name)

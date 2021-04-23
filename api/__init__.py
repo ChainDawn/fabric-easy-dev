@@ -29,11 +29,11 @@ class ApiSupport(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def chaincode_lifecycle(self):
+    def chaincode_lifecycle(self, chaincode, peer, orderer=None):
         pass
 
     @abstractmethod
-    def chaincode(self):
+    def chaincode(self, chaincode, peers, orderer=None):
         pass
 
     @abstractmethod
@@ -55,6 +55,11 @@ class ChannelApi(metaclass=ABCMeta):
     def join(self, peer):
         pass
 
+    @abstractmethod
+    def list(self, peer):
+        pass
+
+    @abstractmethod
     def approve(self, peer, chaincode, package_id):
         pass
 
@@ -71,4 +76,54 @@ class PeerApi(metaclass=ABCMeta):
 
     @abstractmethod
     def chaincode_install(self, chaincode):
+        pass
+
+
+class ChaincodeLifecycleApi(metaclass=ABCMeta):
+
+    @abstractmethod
+    def query_installed(self):
+        pass
+
+    @abstractmethod
+    def install(self):
+        pass
+
+    @abstractmethod
+    def query_approved(self):
+        pass
+
+    @abstractmethod
+    def approve(self):
+        pass
+
+    @abstractmethod
+    def query_committed(self):
+        pass
+
+    @abstractmethod
+    def commit(self):
+        pass
+
+    @abstractmethod
+    def check_commit_readiness(self):
+        pass
+
+    @abstractmethod
+    def package(self, cache_dir):
+        pass
+
+    @abstractmethod
+    def get_installed_package(self, cache_dir):
+        pass
+
+
+class ChaincodeApi(metaclass=ABCMeta):
+
+    @abstractmethod
+    def invoke(self, params, peers, orderer):
+        pass
+
+    @abstractmethod
+    def query(self, params, peer):
         pass
