@@ -57,18 +57,18 @@ class CliApiSupport(api.ApiSupport, ABC):
         os.system("cp -r %s/* %s" % (self.Signer.Dir, self.signer_dir))
 
     def channel(self, channel, orderer):
-        return CliChannelApi(channel, self, orderer)
-
-    def peer(self, peer_addr):
-        return CliPeerApi(peer_addr, self)
+        return CliChannelApi(self, channel, orderer)
 
     def chaincode_lifecycle(self, chaincode, peer, orderer=None):
-        pass
+        return CliChaincodeLifecycleApi(self, chaincode, peer, orderer)
 
     def chaincode(self, chaincode, peers, orderer=None):
         pass
 
-    def __execute_api__(self, sub_command, func, args, orderer=None, envs=None):
+    def peer(self, peer):
+        return CliPeerApi(self, peer)
+
+    def __execute_api__(self, args, orderer=None, envs=None):
         if orderer is not None:
             common_orderer_args = [
                 "--orderer", orderer.deploy_handler.Address,
@@ -79,9 +79,9 @@ class CliApiSupport(api.ApiSupport, ABC):
         sub_env = {"FABRIC_CFG_PATH": self.signer_dir}
         if envs is not None:
             sub_env = {**envs, **sub_env}
-        return subprocess.run([self.Peer, sub_command, func, *args], env=sub_env)
+        return subprocess.run([self.Peer, *args], env=sub_env)
 
-    def __execute_api_join_env__(self, sub_command, func, args, orderer=None, envs=None):
+    def __execute_api_join_env__(self, args, orderer=None, envs=None):
         if orderer is not None:
             common_orderer_args = [
                 "--orderer", orderer.deploy_handler.Address,
@@ -92,99 +92,128 @@ class CliApiSupport(api.ApiSupport, ABC):
         os.putenv("FABRIC_CFG_PATH", self.signer_dir)
         for e_key in envs:
             os.putenv(e_key, envs[e_key])
-        return subprocess.run([self.Peer, sub_command, func, *args])
+        return subprocess.run([self.Peer, *args])
 
 
 class CliChannelApi(api.ChannelApi, ABC):
 
-    def __init__(self, channel, api_support, orderer):
+    def __init__(self, support, channel, orderer):
         super(CliChannelApi, self).__init__()
+        self.api = support
         self.channel = channel
-        self.support = api_support
         self.orderer = orderer
 
+    def __execute__(self, cmd, args, peer=None):
+        envs = None
+        if peer is not None:
+            envs = {"CORE_PEER_ADDRESS": peer.deploy_handler.Address}
+        self.api.__execute_api__(["channel", cmd, *args], orderer=self.orderer, envs=envs)
+
     def create(self, tx):
-        block_file = os.path.join(self.support.Dir, "%s.block" % self.channel.Name)
-        self.support.__execute_api__("channel", "create", [
+        block_file = os.path.join(self.api.Dir, "%s.block" % self.channel.Name)
+        self.__execute__("create", [
             "--channelID", self.channel.Name,
             "--file", tx,
             "--outputBlock", block_file,
-        ], orderer=self.orderer)
+        ])
 
     def update(self, tx):
         pass
 
     def fetch(self, fetch_type="oldest"):
-        block_file = os.path.join(self.support.Dir, "%s-%s.block" % (self.channel.Name, fetch_type))
-        self.support.__execute_api__("channel", "fetch", [
-            fetch_type, block_file,
+        block_file = os.path.join(self.api.Dir, "%s-%s.block" % (self.channel.Name, fetch_type))
+        self.__execute__("fetch", [
+            fetch_type,
+            block_file,
             "--channelID", self.channel.Name,
-        ], orderer=self.orderer)
+        ])
         return block_file
 
     def join(self, peer):
         latest_block_file = self.fetch()
-        self.support.__execute_api__("channel", "join", [
+        self.__execute__("join", [
             "-b", latest_block_file,
-        ], envs={"CORE_PEER_ADDRESS": peer.deploy_handler.Address})
+        ], peer)
 
-    def list(self, peer):
+
+class CliChaincodeLifecycleApi(api.ChaincodeLifecycleApi, ABC):
+
+    def __init__(self, support, chaincode, peer, orderer):
+        super(CliChaincodeLifecycleApi, self).__init__()
+        self.api = support
+        self.cc = chaincode
+        self.peer = peer
+        self.orderer = orderer
+
+    def __execute_api__(self, cmd, params):
+        return self.__execute__(cmd, params, func=self.api.__execute_api__)
+
+    def __execute__(self, cmd, params, func):
+        envs = {"CORE_PEER_ADDRESS": self.peer.deploy_handler.Address}
+        return func(["lifecycle", "chaincode", cmd, *params], orderer=self.orderer, envs=envs)
+
+    def get_installed_package(self, cache_dir):
         pass
 
-    def approve(self, peer, chaincode, package_id):
-        self.support.__execute_api__("lifecycle", "chaincode", [
-            "approveformyorg",
-            "--ChannelID", self.channel.Name,
-            "--name", chaincode.Name,
-            "--version", chaincode.Version,
+    def approve(self, ch_name, package_id):
+        self.__execute_api__("approveformyorg", [
+            "--ChannelID", ch_name,
+            "--name", self.cc.Name,
+            "--version", self.cc.Version,
             "--package-id", package_id,
-            "sequence", chaincode.Sequence,
-        ], envs={"CORE_PEER_ADDRESS": peer.deploy_handler.Address}, orderer=self.orderer)
+            "sequence", self.cc.Sequence,
+        ])
+
+    def query_approved(self, ch_name):
+        self.__execute_api__("queryapproved", [
+            "-C", ch_name,
+            "-n", self.cc.Name,
+            "--sequence", str(self.cc.Sequence),
+            "--output", "json",
+        ])
+
+    def commit(self):
+        pass
+
+    def query_committed(self):
+        pass
+
+    def check_commit_readiness(self):
+        pass
 
 
 class CliPeerApi(api.PeerApi, ABC):
 
-    def __init__(self, peer_addr, api_support):
-        super(CliPeerApi, self).__init__()
-        self.peer_addr = peer_addr
-        self.support = api_support
+    def __init__(self, support, peer):
+        self.api = support
+        self.peer = peer
 
-    def channel_list(self):
-        self.__execute_with_peer__("channel", "list", [])
+    def __execute__(self, args):
+        return self.api.__execute_api__(args, envs={"CORE_PEER_ADDRESS": self.peer.deploy_handler.Address})
 
-    def channel_is_joined(self, ch_name):
-        pass
+    def __execute_join_env__(self, args):
+        return self.api.__execute_api_join_env__(args, envs={"CORE_PEER_ADDRESS": self.peer.deploy_handler.Address})
 
-    def chaincode_package(self, chaincode, cache_dir):
-        label = "%s.%s" % (chaincode.Name, chaincode.Version)
-        target_package = os.path.join(cache_dir, "%s.tar.gz" % label)
-        self.__execute_with_peer_join_env("lifecycle", "chaincode", [
-            "package", target_package,
-            "--path", chaincode.Path,
-            "--lang", chaincode.Language,
-            "--label", label
+    def list_channels(self):
+        self.api.__execute_api__([
+            "channel", "list"
         ])
+
+    def list_installed_chaincodes(self):
+        self.api.__execute_api__([
+            "lifecycle", "chaincode", "queryinstalled"
+        ])
+
+    def install_chaincode(self, chaincode):
+        cc_pack = self.package_chaincode(chaincode)
+        self.__execute__(["lifecycle", "chaincode", "install", cc_pack])
+
+    def package_chaincode(self, cc):
+        label = "%s.%s" % (cc.Name, cc.Version)
+        target_package = os.path.join(self.api.Dir, "%s.tar.gz" % label)
+        self.__execute_join_env__([
+            "lifecycle", "chaincode", "package", target_package,
+            "--path", cc.Path,
+            "--lang", cc.Language,
+            "--label", label])
         return target_package
-
-    def chaincode_installed(self):
-        self.__execute_with_peer__("lifecycle", "chaincode", ["queryinstalled"])
-
-    def chaincode_install(self, chaincode):
-        cc_package = self.chaincode_package(chaincode, self.support.Dir)
-        self.__execute_with_peer__("lifecycle", "chaincode", ["install", cc_package])
-
-    def chaincode_query_approved(self, chaincode, ch_name):
-        print(ch_name)
-        self.__execute_with_peer__("lifecycle", "chaincode", [
-            "queryapproved",
-            "-C", ch_name,
-            "-n", chaincode.Name,
-            "--sequence", str(chaincode.Sequence),
-            "--output", "json",
-        ])
-
-    def __execute_with_peer_join_env(self, command, subcommand, args):
-        return self.support.__execute_api_join_env__(command, subcommand, args, envs={"CORE_PEER_ADDRESS": self.peer_addr})
-
-    def __execute_with_peer__(self, command, subcommand, args):
-        return self.support.__execute_api__(command, subcommand, args, envs={"CORE_PEER_ADDRESS": self.peer_addr})

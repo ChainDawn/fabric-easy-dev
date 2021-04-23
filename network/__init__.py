@@ -124,7 +124,7 @@ class Network:
         support = api_support.cli_api_support(orderer.Org.admin(), self.__channel_cache_dir__(ch_name))
         ch = self.__channel__(ch_name)
         channel_api = support.channel(ch, orderer)
-        tx = ch.create_tx(channel_api.support.Dir)
+        tx = ch.create_tx(channel_api.api.Dir)
         channel_api.create(tx)
 
     def channel_join(self, ch_name, peer_name, orderer_name):
@@ -138,17 +138,17 @@ class Network:
     def channel_list(self, peer_name):
         peer = find_node(self.orgs_map, peer_name)
         support = api_support.cli_api_support(peer.Org.admin(), self.api_cache_dir)
-        support.peer(peer.deploy_handler.Address).channel_list()
+        support.peer(peer).list_channels()
 
     def chaincode_list_installed(self, peer_name):
         peer = find_node(self.orgs_map, peer_name)
         support = api_support.cli_api_support(peer.Org.admin(), self.api_cache_dir)
-        support.peer(peer.deploy_handler.Address).chaincode_installed()
+        support.peer(peer).list_installed_chaincodes()
 
     def chaincode_install(self, peer_name, cc_name):
         peer = find_node(self.orgs_map, peer_name)
         support = api_support.cli_api_support(peer.Org.admin(), self.api_cache_dir)
-        support.peer(peer.deploy_handler.Address).chaincode_install(self.chaincodes[cc_name])
+        support.peer(peer).install_chaincode(self.chaincodes[cc_name])
 
     def chaincode_approve(self, peer_name, orderer_name, cc_name, package_id, ch_name=None):
         peer = find_node(self.orgs_map, peer_name)
