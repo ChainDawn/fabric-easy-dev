@@ -55,6 +55,9 @@ class ChannelApi(metaclass=ABCMeta):
     def join(self, peer):
         pass
 
+    def approve(self, peer, chaincode, package_id):
+        pass
+
 
 class PeerApi(metaclass=ABCMeta):
 

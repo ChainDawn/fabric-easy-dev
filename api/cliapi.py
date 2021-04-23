@@ -128,6 +128,16 @@ class CliChannelApi(api.ChannelApi, ABC):
             "-b", latest_block_file,
         ], envs={"CORE_PEER_ADDRESS": peer.deploy_handler.Address})
 
+    def approve(self, peer, chaincode, package_id):
+        self.support.__execute_api__("lifecycle", "chaincode", [
+            "approveformyorg",
+            "--ChannelID", self.channel.Name,
+            "--name", chaincode.Name,
+            "--version", chaincode.Version,
+            "--package-id", package_id,
+            "sequence", chaincode.Sequence,
+        ], envs={"CORE_PEER_ADDRESS": peer.deploy_handler.Address}, orderer=self.orderer)
+
 
 class CliPeerApi(api.PeerApi, ABC):
 
@@ -159,6 +169,16 @@ class CliPeerApi(api.PeerApi, ABC):
     def chaincode_install(self, chaincode):
         cc_package = self.chaincode_package(chaincode, self.support.Dir)
         self.__execute_with_peer__("lifecycle", "chaincode", ["install", cc_package])
+
+    def chaincode_query_approved(self, chaincode, ch_name):
+        print(ch_name)
+        self.__execute_with_peer__("lifecycle", "chaincode", [
+            "queryapproved",
+            "-C", ch_name,
+            "-n", chaincode.Name,
+            "--sequence", str(chaincode.Sequence),
+            "--output", "json",
+        ])
 
     def __execute_with_peer_join_env(self, command, subcommand, args):
         return self.support.__execute_api_join_env__(command, subcommand, args, envs={"CORE_PEER_ADDRESS": self.peer_addr})

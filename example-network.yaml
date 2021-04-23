@@ -73,3 +73,6 @@ UserChaincodes:
     Path: fabric-samples/asset-transfer-basic/chaincode-go
     Language: golang
     Version: 1.0
+    Sequence: 1
+    Channels:
+      - easy-user-channel
