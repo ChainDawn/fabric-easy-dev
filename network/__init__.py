@@ -153,10 +153,14 @@ class Network:
     def chaincode_approve(self, peer_name, orderer_name, cc_name, package_id, ch_name=None):
         peer = find_node(self.orgs_map, peer_name)
         orderer = find_node(self.orgs_map, orderer_name)
+        support = api_support.cli_api_support(peer.Org.admin(), self.__channel_cache_dir__(ch_name))
+        cc = self.chaincodes[cc_name]
+        cc_api = support.chaincode_lifecycle(cc, peer, orderer)
         if ch_name is not None:
-            support = api_support.cli_api_support(peer.Org.admin(), self.__channel_cache_dir__(ch_name))
-            ch_api = support.channel(self.__channel__(ch_name), orderer)
-            ch_api.approve(peer, self.chaincodes[cc_name], package_id)
+            cc_api.approve(ch_name, package_id)
+        else:
+            for _ch_name in cc.Channels:
+                cc_api.approve(_ch_name, package_id)
 
     def chaincode_query_approve(self, peer_name, ch_name, cc_name):
         peer = find_node(self.orgs_map, peer_name)
