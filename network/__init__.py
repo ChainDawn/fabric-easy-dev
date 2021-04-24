@@ -148,13 +148,13 @@ class Network:
     def chaincode_install(self, peer_name, cc_name):
         peer = find_node(self.orgs_map, peer_name)
         support = api_support.cli_api_support(peer.Org.admin(), self.api_cache_dir)
-        support.peer(peer).install_chaincode(self.chaincodes[cc_name])
+        support.peer(peer).install_chaincode(self.__chaincode__(cc_name))
 
     def chaincode_approve(self, peer_name, orderer_name, cc_name, package_id, ch_name=None):
         peer = find_node(self.orgs_map, peer_name)
         orderer = find_node(self.orgs_map, orderer_name)
         support = api_support.cli_api_support(peer.Org.admin(), self.__channel_cache_dir__(ch_name))
-        cc = self.chaincodes[cc_name]
+        cc = self.__chaincode__(cc_name)
         cc_api = support.chaincode_lifecycle(cc, peer, orderer)
         if ch_name is not None:
             cc_api.approve(ch_name, package_id)
@@ -165,4 +165,5 @@ class Network:
     def chaincode_query_approve(self, peer_name, ch_name, cc_name):
         peer = find_node(self.orgs_map, peer_name)
         support = api_support.cli_api_support(peer.Org.admin(), self.api_cache_dir)
-        support.peer(peer.deploy_handler.Address).chaincode_query_approved(self.chaincodes[cc_name], ch_name)
+        cc_api = support.chaincode_lifecycle(self.__chaincode__(cc_name), peer)
+        cc_api.query_approved(ch_name)
