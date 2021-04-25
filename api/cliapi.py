@@ -157,11 +157,11 @@ class CliChaincodeLifecycleApi(api.ChaincodeLifecycleApi, ABC):
 
     def approve(self, ch_name, package_id):
         self.__execute_api__("approveformyorg", [
-            "--ChannelID", ch_name,
+            "--channelID", ch_name,
             "--name", self.cc.Name,
-            "--version", self.cc.Version,
+            "--version", str(self.cc.Version),
             "--package-id", package_id,
-            "sequence", self.cc.Sequence,
+            "--sequence", str(self.cc.Sequence),
         ])
 
     def query_approved(self, ch_name):

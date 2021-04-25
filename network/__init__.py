@@ -150,7 +150,7 @@ class Network:
         support = api_support.cli_api_support(peer.Org.admin(), self.api_cache_dir)
         support.peer(peer).install_chaincode(self.__chaincode__(cc_name))
 
-    def chaincode_approve(self, peer_name, orderer_name, cc_name, package_id, ch_name=None):
+    def chaincode_approve(self, peer_name, orderer_name, cc_name, package_id, ch_name):
         peer = find_node(self.orgs_map, peer_name)
         orderer = find_node(self.orgs_map, orderer_name)
         support = api_support.cli_api_support(peer.Org.admin(), self.__channel_cache_dir__(ch_name))
