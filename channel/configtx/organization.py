@@ -34,4 +34,4 @@ class Organization(yaml.YAMLObject):
         self.ID = mspid
         self.MSPDir = msp_dir
         self.Policies = __policies__(mspid)
-        self.SkipAsForeign = "false"
+        self.SkipAsForeign = False

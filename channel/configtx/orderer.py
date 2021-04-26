@@ -20,7 +20,7 @@ from channel.configtx import Policy
 
 def __capabilities__():
     return {
-        "V2.0": "true"
+        "V2_0": True
     }
 
 

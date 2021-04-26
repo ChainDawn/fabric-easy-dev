@@ -26,7 +26,7 @@ from channel.configtx.orderer import Orderer, EtcdRaft, Consenter
 
 def __channel_capabilities__():
     return {
-        "V2.0": "true"
+        "V2_0": True
     }
 
 
