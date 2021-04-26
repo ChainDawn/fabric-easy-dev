@@ -75,7 +75,7 @@ class ChaincodeLifecycleApi(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def check_commit_readiness(self):
+    def check_commit_readiness(self, ch_name):
         pass
 
     @abstractmethod

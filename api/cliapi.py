@@ -178,8 +178,14 @@ class CliChaincodeLifecycleApi(api.ChaincodeLifecycleApi, ABC):
     def query_committed(self):
         pass
 
-    def check_commit_readiness(self):
-        pass
+    def check_commit_readiness(self, ch_name):
+        self.__execute_api__("checkcommitreadiness", [
+            "--channelID", ch_name,
+            "--name", self.cc.Name,
+            "--sequence", str(self.cc.Sequence),
+            "--version", str(self.cc.Version),
+            "--output", "json"
+        ])
 
 
 class CliPeerApi(api.PeerApi, ABC):

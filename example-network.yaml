@@ -76,3 +76,4 @@ UserChaincodes:
     Sequence: 1
     Channels:
       - easy-user-channel
+      - mychannel

@@ -167,3 +167,9 @@ class Network:
         support = api_support.cli_api_support(peer.Org.admin(), self.api_cache_dir)
         cc_api = support.chaincode_lifecycle(self.__chaincode__(cc_name), peer)
         cc_api.query_approved(ch_name)
+
+    def chaincode_check_commit_readiness(self, peer_name, ch_name, cc_name):
+        peer = find_node(self.orgs_map, peer_name)
+        support = api_support.cli_api_support(peer.Org.admin(), self.api_cache_dir)
+        cc_api = support.chaincode_lifecycle(self.__chaincode__(cc_name), peer)
+        cc_api.check_commit_readiness(ch_name)
