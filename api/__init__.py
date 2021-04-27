@@ -71,7 +71,7 @@ class ChaincodeLifecycleApi(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def commit(self):
+    def commit(self, cc_name, endorsers=None):
         pass
 
     @abstractmethod

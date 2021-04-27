@@ -172,8 +172,20 @@ class CliChaincodeLifecycleApi(api.ChaincodeLifecycleApi, ABC):
             "--output", "json",
         ])
 
-    def commit(self):
-        pass
+    def commit(self, ch_name, endorsers=None):
+        endorsers_params = []
+        if endorsers is not None:
+            for endorser in endorsers:
+                endorsers_params += [
+                    "--peerAddresses", endorser.deploy_handler.Address,
+                    "--tlsRootCertFiles", endorser.msp_holder.tls_ca(),
+                ]
+        self.__execute_api__("commit", [
+            "--channelID", ch_name,
+            "--name", self.cc.Name,
+            "--sequence", str(self.cc.Sequence),
+            "--version", str(self.cc.Version),
+        ] + endorsers_params)
 
     def query_committed(self):
         pass
