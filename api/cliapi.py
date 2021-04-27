@@ -268,4 +268,8 @@ class CliChaincodeApi(api.ChaincodeApi, ABC):
         ] + endorsers_params)
 
     def query(self, params):
-        pass
+        self.__execute_api__("query", [
+            "-n", self.cc.Name,
+            "-C", self.ch_name,
+            "-c", params
+        ])

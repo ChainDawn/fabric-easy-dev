@@ -202,3 +202,9 @@ class Network:
         cc_api = support.chaincode(cc, ch_name, endosers[0], orderer)
         cc_api.invoke(params, endosers)
 
+    def chaincode_query(self, ch_name, cc_name, params, peer_name):
+        cc = self.__chaincode__(cc_name)
+        peer = find_node(self.orgs_map, peer_name)
+        support = api_support.cli_api_support(peer.Org.admin(), self.__channel_cache_dir__(ch_name))
+        cc_api = support.chaincode(cc, ch_name, peer)
+        cc_api.query(params)
