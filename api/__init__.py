@@ -67,7 +67,7 @@ class ChaincodeLifecycleApi(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def query_committed(self):
+    def query_committed(self, ch_name):
         pass
 
     @abstractmethod

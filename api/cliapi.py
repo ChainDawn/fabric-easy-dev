@@ -187,8 +187,11 @@ class CliChaincodeLifecycleApi(api.ChaincodeLifecycleApi, ABC):
             "--version", str(self.cc.Version),
         ] + endorsers_params)
 
-    def query_committed(self):
-        pass
+    def query_committed(self, ch_name):
+        self.__execute_api__("querycommitted", [
+            "--channelID", ch_name,
+            "--name", self.cc.Name,
+        ])
 
     def check_commit_readiness(self, ch_name):
         self.__execute_api__("checkcommitreadiness", [

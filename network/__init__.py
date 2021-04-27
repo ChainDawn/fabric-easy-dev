@@ -185,3 +185,9 @@ class Network:
         cc = self.__chaincode__(cc_name)
         cc_api = support.chaincode_lifecycle(cc, peer, orderer)
         cc_api.commit(ch_name, endosers)
+
+    def chaincode_query_committed(self, peer_name, ch_name, cc_name):
+        peer = find_node(self.orgs_map, peer_name)
+        support = api_support.cli_api_support(peer.Org.admin(), self.api_cache_dir)
+        cc_api = support.chaincode_lifecycle(self.__chaincode__(cc_name), peer)
+        cc_api.query_committed(ch_name)
