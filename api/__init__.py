@@ -33,7 +33,7 @@ class ApiSupport(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def chaincode(self, chaincode, peers, orderer=None):
+    def chaincode(self, chaincode, ch_name, peers, orderer=None):
         pass
 
     @abstractmethod
@@ -86,11 +86,11 @@ class ChaincodeLifecycleApi(metaclass=ABCMeta):
 class ChaincodeApi(metaclass=ABCMeta):
 
     @abstractmethod
-    def invoke(self, params, peers, orderer):
+    def invoke(self, params, peers):
         pass
 
     @abstractmethod
-    def query(self, params, peer):
+    def query(self, params):
         pass
 
 

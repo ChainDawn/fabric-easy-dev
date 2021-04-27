@@ -191,3 +191,14 @@ class Network:
         support = api_support.cli_api_support(peer.Org.admin(), self.api_cache_dir)
         cc_api = support.chaincode_lifecycle(self.__chaincode__(cc_name), peer)
         cc_api.query_committed(ch_name)
+
+    def chaincode_invoke(self, ch_name, cc_name, params, orderer_name, *endorser_names):
+        cc = self.__chaincode__(cc_name)
+        orderer = find_node(self.orgs_map, orderer_name)
+        endosers = []
+        for e_name in endorser_names:
+            endosers.append(find_node(self.orgs_map, e_name))
+        support = api_support.cli_api_support(endosers[0].Org.admin(), self.__channel_cache_dir__(ch_name))
+        cc_api = support.chaincode(cc, ch_name, endosers[0], orderer)
+        cc_api.invoke(params, endosers)
+

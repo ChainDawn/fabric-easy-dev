@@ -62,8 +62,8 @@ class CliApiSupport(api.ApiSupport, ABC):
     def chaincode_lifecycle(self, chaincode, peer, orderer=None):
         return CliChaincodeLifecycleApi(self, chaincode, peer, orderer)
 
-    def chaincode(self, chaincode, peers, orderer=None):
-        pass
+    def chaincode(self, chaincode, ch_name, peer, orderer=None):
+        return CliChaincodeApi(self, chaincode, ch_name, peer, orderer)
 
     def peer(self, peer):
         return CliPeerApi(self, peer)
@@ -238,3 +238,34 @@ class CliPeerApi(api.PeerApi, ABC):
             "--lang", cc.Language,
             "--label", label])
         return target_package
+
+
+class CliChaincodeApi(api.ChaincodeApi, ABC):
+
+    def __init__(self, support, cc, ch_name, peer, orderer=None):
+        self.cc = cc
+        self.ch_name = ch_name
+        self.api = support
+        self.peer = peer
+        self.orderer = orderer
+
+    def __execute_api__(self, cmd, params):
+        envs = {"CORE_PEER_ADDRESS": self.peer.deploy_handler.Address}
+        return self.api.__execute_api__(["chaincode", cmd, *params], orderer=self.orderer, envs=envs)
+
+    def invoke(self, params, endorsers):
+        endorsers_params = []
+        if endorsers is not None:
+            for endorser in endorsers:
+                endorsers_params += [
+                    "--peerAddresses", endorser.deploy_handler.Address,
+                    "--tlsRootCertFiles", endorser.msp_holder.tls_ca(),
+                ]
+        self.__execute_api__("invoke", [
+            "-n", self.cc.Name,
+            "-C", self.ch_name,
+            "-c", params
+        ] + endorsers_params)
+
+    def query(self, params):
+        pass
