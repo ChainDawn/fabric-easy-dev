@@ -15,7 +15,10 @@
 # limitations under the License.
 #
 from channel.configtx import ConfigTxSupport
-from orgconfig import find_node
+from orgconfig import find_node, find_user
+from api import support as api_support
+
+import os
 
 KEY_SYS_CHANNEL = "SystemChannel"
 KEY_USER_CHANNELS = "UserChannels"
@@ -72,23 +75,42 @@ class UserChannel(dict):
     def __getattr__(self, item):
         return self[item]
 
-    def __init__(self, orgs_map, channel_name, **config):
+    def __init__(self, orgs_map, channel_name, cache_dir, **config):
         super(UserChannel, self).__init__()
         self.update(config)
         self.Name = channel_name
         self.Orgs = {name: orgs_map[name] for name in self.Organizations}
+        self.orgs_map = orgs_map
+        self.cache_dir = os.path.join(cache_dir, self.Name)
 
-    def create_tx(self, cache_dir, tx_support=__default_tx_support__()):
-        return tx_support.generate_create_channel_tx(self, cache_dir)
+    def __create_tx__(self, tx_support=__default_tx_support__()):
+        return tx_support.generate_create_channel_tx(self, self.cache_dir)
 
     def update_tx(self, tx):
         pass
+
+    def create(self, orderer_name):
+        orderer = self.__get_node__(orderer_name)
+        support = api_support.cli_api_support(orderer.Org.admin(), self.cache_dir)
+        ch_api = support.channel(self, orderer)
+        tx = self.__create_tx__()
+        return ch_api.create(tx)
+
+    def join(self, orderer_name, peer_name):
+        orderer = self.__get_node__(orderer_name)
+        peer = self.__get_node__(peer_name)
+        support = api_support.cli_api_support(peer.Org.admin(), self.cache_dir)
+        ch_api = support.channel(self, orderer)
+        return ch_api.join(peer)
+
+    def __get_node__(self, name):
+        return find_node(self.orgs_map, name)
 
 
 def config_sys_channel(orgs_map, raw_conf):
     return SystemChannel(orgs_map, **raw_conf)
 
 
-def config_user_channels(orgs_map, raw_conf):
-    return {ch_name: UserChannel(orgs_map, ch_name, **raw_conf[ch_name])
+def config_user_channels(orgs_map, cache_dir, raw_conf):
+    return {ch_name: UserChannel(orgs_map, ch_name, cache_dir, **raw_conf[ch_name])
             for ch_name in raw_conf.keys()}

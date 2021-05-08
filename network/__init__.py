@@ -50,7 +50,7 @@ class Network:
         mkdir_if_need(self.channel_cache_dir)
 
         if KEY_USER_CHANNELS in raw_conf:
-            self.channels = config_user_channels(self.orgs_map, raw_conf[KEY_USER_CHANNELS])
+            self.channels = config_user_channels(self.orgs_map, self.channel_cache_dir, raw_conf[KEY_USER_CHANNELS])
 
         if KEY_USER_CHAINCODES in raw_conf:
             self.chaincodes = config_chaincodes(raw_conf[KEY_USER_CHAINCODES])
@@ -120,20 +120,12 @@ class Network:
         return self.chaincodes[cc_name]
 
     def channel_create(self, ch_name, orderer_name):
-        orderer = find_node(self.orgs_map, orderer_name)
-        support = api_support.cli_api_support(orderer.Org.admin(), self.__channel_cache_dir__(ch_name))
         ch = self.__channel__(ch_name)
-        channel_api = support.channel(ch, orderer)
-        tx = ch.create_tx(channel_api.api.Dir)
-        channel_api.create(tx)
+        ch.create(orderer_name)
 
     def channel_join(self, ch_name, peer_name, orderer_name):
-        peer = find_node(self.orgs_map, peer_name)
-        orderer = find_node(self.orgs_map, orderer_name)
-        support = api_support.cli_api_support(peer.Org.admin(), self.__channel_cache_dir__(ch_name))
         ch = self.__channel__(ch_name)
-        ch_api = support.channel(ch, orderer)
-        ch_api.join(peer)
+        ch.join(orderer_name, peer_name)
 
     def channel_list(self, peer_name):
         peer = find_node(self.orgs_map, peer_name)
