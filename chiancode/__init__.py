@@ -14,6 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from api import support as api_support
+
+
 KEY_USER_CHAINCODES = "UserChaincodes"
 
 
@@ -26,6 +29,33 @@ class UserChaincode(dict):
         super().__init__()
         self.Name = name
         self.update(values)
+
+    def approve(self, ch, peer_name, orderer_name, package_id):
+        self.__cc_api__(ch, peer_name, orderer_name).approve(ch.Name, package_id)
+
+    def query_approve(self, ch, peer_name):
+        self.__cc_api__(ch, peer_name).query_approved(ch.Name)
+
+    def check_commit_readiness(self, ch, peer_name):
+        self.__cc_api__(ch, peer_name).check_commit_readiness(ch.Name)
+
+    def commit(self, ch, peer_name, orderer_name, *endorser_names):
+        endosers = []
+        for e_name in endorser_names:
+            endosers.append(ch.__get_node__(e_name))
+        endosers.append(ch.__get_node__(peer_name))
+        self.__cc_api__(ch, peer_name, orderer_name).commit(ch.Name, endosers)
+
+    def query_committed(self, ch, peer_name):
+        self.__cc_api__(ch, peer_name).query_committed(ch.Name)
+
+    def __cc_api__(self, ch, peer_name, orderer_name=None):
+        peer = ch.__get_node__(peer_name)
+        orderer = None
+        if orderer_name is not None:
+            orderer = ch.__get_node__(orderer_name)
+        support = api_support.cli_api_support(peer.Org.admin(), ch.cache_dir)
+        return support.chaincode_lifecycle(self, peer, orderer)
 
 
 def config_chaincodes(raw_conf):
