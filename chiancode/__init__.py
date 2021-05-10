@@ -31,31 +31,46 @@ class UserChaincode(dict):
         self.update(values)
 
     def approve(self, ch, peer_name, orderer_name, package_id):
-        self.__cc_api__(ch, peer_name, orderer_name).approve(ch.Name, package_id)
+        self.__cc_lc_api__(ch, peer_name, orderer_name).approve(ch.Name, package_id)
 
     def query_approve(self, ch, peer_name):
-        self.__cc_api__(ch, peer_name).query_approved(ch.Name)
+        self.__cc_lc_api__(ch, peer_name).query_approved(ch.Name)
 
     def check_commit_readiness(self, ch, peer_name):
-        self.__cc_api__(ch, peer_name).check_commit_readiness(ch.Name)
+        self.__cc_lc_api__(ch, peer_name).check_commit_readiness(ch.Name)
 
     def commit(self, ch, peer_name, orderer_name, *endorser_names):
         endosers = []
         for e_name in endorser_names:
             endosers.append(ch.__get_node__(e_name))
         endosers.append(ch.__get_node__(peer_name))
-        self.__cc_api__(ch, peer_name, orderer_name).commit(ch.Name, endosers)
+        self.__cc_lc_api__(ch, peer_name, orderer_name).commit(ch.Name, endosers)
 
     def query_committed(self, ch, peer_name):
-        self.__cc_api__(ch, peer_name).query_committed(ch.Name)
+        self.__cc_lc_api__(ch, peer_name).query_committed(ch.Name)
 
-    def __cc_api__(self, ch, peer_name, orderer_name=None):
+    def __cc_lc_api__(self, ch, peer_name, orderer_name=None):
         peer = ch.__get_node__(peer_name)
         orderer = None
         if orderer_name is not None:
             orderer = ch.__get_node__(orderer_name)
         support = api_support.cli_api_support(peer.Org.admin(), ch.cache_dir)
         return support.chaincode_lifecycle(self, peer, orderer)
+
+    def query(self, ch, peer_name, params):
+        peer = ch.__get_node__(peer_name)
+        support = api_support.cli_api_support(peer.Org.admin(), ch.cache_dir)
+        cc_api = support.chaincode(self, ch.Name, peer)
+        cc_api.query(params)
+
+    def invoke(self, ch, orderer_name, *endorser_names, params):
+        orderer = ch.__get_node__(orderer_name)
+        endosers = []
+        for e_name in endorser_names:
+            endosers.append(ch.__get_node__(e_name))
+        support = api_support.cli_api_support(endosers[0].Org.admin(), ch.cache_dir)
+        cc_api = support.chaincode(self, ch.Name, endosers[0], orderer)
+        cc_api.invoke(params, endosers)
 
 
 def config_chaincodes(raw_conf):

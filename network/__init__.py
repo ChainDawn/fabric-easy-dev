@@ -168,18 +168,11 @@ class Network:
         cc.query_committed(ch, peer_name)
 
     def chaincode_invoke(self, ch_name, cc_name, params, orderer_name, *endorser_names):
+        ch = self.__channel__(ch_name)
         cc = self.__chaincode__(cc_name)
-        orderer = find_node(self.orgs_map, orderer_name)
-        endosers = []
-        for e_name in endorser_names:
-            endosers.append(find_node(self.orgs_map, e_name))
-        support = api_support.cli_api_support(endosers[0].Org.admin(), self.__channel_cache_dir__(ch_name))
-        cc_api = support.chaincode(cc, ch_name, endosers[0], orderer)
-        cc_api.invoke(params, endosers)
+        cc.invoke(ch, orderer_name, endorser_names, params)
 
     def chaincode_query(self, ch_name, cc_name, params, peer_name):
+        ch = self.__channel__(ch_name)
         cc = self.__chaincode__(cc_name)
-        peer = find_node(self.orgs_map, peer_name)
-        support = api_support.cli_api_support(peer.Org.admin(), self.__channel_cache_dir__(ch_name))
-        cc_api = support.chaincode(cc, ch_name, peer)
-        cc_api.query(params)
+        cc.query(ch, peer_name, params)
