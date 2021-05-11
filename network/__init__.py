@@ -90,7 +90,7 @@ class Network:
         orderer = self.sys_channel.Ords[0]
         for ch_name in self.channels:
             self.channel_create(ch_name, orderer.FullName)
-            ch = self.__channel__(ch_name)
+            ch = self.channel(ch_name)
             for org in ch.Orgs.values():
                 for peer in org.PeerNodes.values():
                     self.channel_join(ch_name, peer.FullName, orderer.FullName)
@@ -106,25 +106,22 @@ class Network:
             node = find_node(self.orgs_map, node_name)
             node.deploy_handler.display()
 
-    def __channel_cache_dir__(self, ch_name):
-        return os.path.join(self.channel_cache_dir, ch_name)
-
-    def __channel__(self, ch_name):
+    def channel(self, ch_name):
         if ch_name not in self.channels:
             raise Exception("No such channel configuration: %s" % ch_name)
         return self.channels[ch_name]
 
-    def __chaincode__(self, cc_name):
+    def chaincode(self, cc_name):
         if cc_name not in self.chaincodes:
             raise Exception("No such chaincode configuration: %s" % cc_name)
         return self.chaincodes[cc_name]
 
     def channel_create(self, ch_name, orderer_name):
-        ch = self.__channel__(ch_name)
+        ch = self.channel(ch_name)
         ch.create(orderer_name)
 
     def channel_join(self, ch_name, peer_name, orderer_name):
-        ch = self.__channel__(ch_name)
+        ch = self.channel(ch_name)
         ch.join(orderer_name, peer_name)
 
     def channel_list(self, peer_name):
@@ -140,39 +137,39 @@ class Network:
     def chaincode_install(self, peer_name, cc_name):
         peer = find_node(self.orgs_map, peer_name)
         support = api_support.cli_api_support(peer.Org.admin(), self.api_cache_dir)
-        support.peer(peer).install_chaincode(self.__chaincode__(cc_name))
+        support.peer(peer).install_chaincode(self.chaincode(cc_name))
 
     def chaincode_approve(self, peer_name, orderer_name, cc_name, package_id, ch_name):
-        ch = self.__channel__(ch_name)
-        cc = self.__chaincode__(cc_name)
+        ch = self.channel(ch_name)
+        cc = self.chaincode(cc_name)
         cc.approve(ch, peer_name, orderer_name, package_id)
 
     def chaincode_query_approve(self, peer_name, ch_name, cc_name):
-        ch = self.__channel__(ch_name)
-        cc = self.__chaincode__(cc_name)
+        ch = self.channel(ch_name)
+        cc = self.chaincode(cc_name)
         cc.query_approve(ch, peer_name)
 
     def chaincode_check_commit_readiness(self, peer_name, ch_name, cc_name):
-        ch = self.__channel__(ch_name)
-        cc = self.__chaincode__(cc_name)
+        ch = self.channel(ch_name)
+        cc = self.chaincode(cc_name)
         cc.check_commit_readiness(ch, peer_name)
 
     def chaincode_commit(self, peer_name, orderer_name, ch_name, cc_name, *endorser_names):
-        ch = self.__channel__(ch_name)
-        cc = self.__chaincode__(cc_name)
+        ch = self.channel(ch_name)
+        cc = self.chaincode(cc_name)
         cc.commit(ch, peer_name, orderer_name, endorser_names)
 
     def chaincode_query_committed(self, peer_name, ch_name, cc_name):
-        ch = self.__channel__(ch_name)
-        cc = self.__chaincode__(cc_name)
+        ch = self.channel(ch_name)
+        cc = self.chaincode(cc_name)
         cc.query_committed(ch, peer_name)
 
     def chaincode_invoke(self, ch_name, cc_name, params, orderer_name, *endorser_names):
-        ch = self.__channel__(ch_name)
-        cc = self.__chaincode__(cc_name)
+        ch = self.channel(ch_name)
+        cc = self.chaincode(cc_name)
         cc.invoke(ch, orderer_name, endorser_names, params)
 
     def chaincode_query(self, ch_name, cc_name, params, peer_name):
-        ch = self.__channel__(ch_name)
-        cc = self.__chaincode__(cc_name)
+        ch = self.channel(ch_name)
+        cc = self.chaincode(cc_name)
         cc.query(ch, peer_name, params)
