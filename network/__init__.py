@@ -89,11 +89,7 @@ class Network:
 
         orderer = self.sys_channel.Ords[0]
         for ch_name in self.channels:
-            self.channel_create(ch_name, orderer.FullName)
-            ch = self.channel(ch_name)
-            for org in ch.Orgs.values():
-                for peer in org.PeerNodes.values():
-                    self.channel_join(ch_name, peer.FullName, orderer.FullName)
+            self.channel_setup(ch_name, orderer.FullName)
 
     def down(self):
         self.clear()
@@ -115,6 +111,15 @@ class Network:
         if cc_name not in self.chaincodes:
             raise Exception("No such chaincode configuration: %s" % cc_name)
         return self.chaincodes[cc_name]
+
+    def channel_setup(self, ch_name, orderer_name=None):
+        ch = self.channel(ch_name)
+        if orderer_name is None:
+            orderer_name = self.sys_channel.Ords[0].FullName
+        ch.create(orderer_name)
+        for org in ch.Orgs.values():
+            for peer in org.PeerNodes.values():
+                ch.join(orderer_name, peer.FullName)
 
     def channel_create(self, ch_name, orderer_name):
         ch = self.channel(ch_name)
