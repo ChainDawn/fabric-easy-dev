@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 from channel.configtx import ConfigTxSupport
-from orgconfig import find_node, find_user
+from orgconfig import find_node
 from api import support as api_support
 
 import os
@@ -80,7 +80,6 @@ class UserChannel(dict):
         self.update(config)
         self.Name = channel_name
         self.Orgs = {name: orgs_map[name] for name in self.Organizations}
-        self.orgs_map = orgs_map
         self.cache_dir = os.path.join(cache_dir, self.Name)
 
     def __create_tx__(self, tx_support=__default_tx_support__()):
@@ -104,7 +103,7 @@ class UserChannel(dict):
         return ch_api.join(peer)
 
     def __get_node__(self, name):
-        return find_node(self.orgs_map, name)
+        return find_node(self.Orgs, name)
 
 
 def config_sys_channel(orgs_map, raw_conf):
