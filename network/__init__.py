@@ -154,27 +154,27 @@ class Network:
         support = api_support.cli_api_support(peer.Org.admin(), self.api_cache_dir)
         support.peer(peer).install_chaincode(self.chaincode(cc_name))
 
-    def chaincode_approve(self, peer_name, orderer_name, cc_name, package_id, ch_name):
+    def chaincode_approve(self, ch_name, cc_name, peer_name, orderer_name, package_id):
         ch = self.channel(ch_name)
         cc = self.chaincode(cc_name)
         cc.approve(ch, peer_name, orderer_name, package_id)
 
-    def chaincode_query_approve(self, peer_name, ch_name, cc_name):
+    def chaincode_query_approve(self, ch_name, cc_name, peer_name):
         ch = self.channel(ch_name)
         cc = self.chaincode(cc_name)
         cc.query_approve(ch, peer_name)
 
-    def chaincode_check_commit_readiness(self, peer_name, ch_name, cc_name):
+    def chaincode_check_commit_readiness(self, ch_name, cc_name, peer_name):
         ch = self.channel(ch_name)
         cc = self.chaincode(cc_name)
         cc.check_commit_readiness(ch, peer_name)
 
-    def chaincode_commit(self, peer_name, orderer_name, ch_name, cc_name, *endorser_names):
+    def chaincode_commit(self, ch_name, cc_name, peer_name, orderer_name, *endorser_names):
         ch = self.channel(ch_name)
         cc = self.chaincode(cc_name)
         cc.commit(ch, peer_name, orderer_name, endorser_names)
 
-    def chaincode_query_committed(self, peer_name, ch_name, cc_name):
+    def chaincode_query_committed(self, ch_name, cc_name, peer_name):
         ch = self.channel(ch_name)
         cc = self.chaincode(cc_name)
         cc.query_committed(ch, peer_name)
