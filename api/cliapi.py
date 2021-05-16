@@ -216,12 +216,12 @@ class CliPeerApi(api.PeerApi, ABC):
         return self.api.__execute_api_join_env__(args, envs={"CORE_PEER_ADDRESS": self.peer.deploy_handler.Address})
 
     def list_channels(self):
-        self.api.__execute_api__([
+        self.__execute__([
             "channel", "list"
         ])
 
     def list_installed_chaincodes(self):
-        self.api.__execute_api__([
+        self.__execute__([
             "lifecycle", "chaincode", "queryinstalled"
         ])
 
