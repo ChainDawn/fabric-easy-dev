@@ -39,12 +39,13 @@ class UserChaincode(dict):
     def check_commit_readiness(self, ch, peer_name):
         self.__cc_lc_api__(ch, peer_name).check_commit_readiness(ch.Name)
 
-    def commit(self, ch, peer_name, orderer_name, *endorser_names):
+    def commit(self, ch, orderer_name, *endorser_names):
+        if len(endorser_names) is 0:
+            raise KeyError("Endorsers is empty")
         endosers = []
         for e_name in endorser_names:
             endosers.append(ch.__get_node__(e_name))
-        endosers.append(ch.__get_node__(peer_name))
-        self.__cc_lc_api__(ch, peer_name, orderer_name).commit(ch.Name, endosers)
+        self.__cc_lc_api__(ch, endorser_names[0], orderer_name).commit(ch.Name, endosers)
 
     def query_committed(self, ch, peer_name):
         self.__cc_lc_api__(ch, peer_name).query_committed(ch.Name)

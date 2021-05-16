@@ -84,12 +84,8 @@ class Network:
     def up(self):
         self.sys_channel.deploy(self.sys_channel_cache_dir)
         self.sys_channel.boot()
-
         time.sleep(15)
-
-        orderer = self.sys_channel.Ords[0]
-        for ch_name in self.channels:
-            self.setup_channel(ch_name, orderer.FullName)
+        self.setup_channels()
 
     def down(self):
         self.clear()
@@ -112,6 +108,11 @@ class Network:
             raise Exception("No such chaincode configuration: %s" % cc_name)
         return self.chaincodes[cc_name]
 
+    def setup_channels(self):
+        orderer = self.sys_channel.Ords[0].FullName
+        for ch_name in self.channels:
+            self.setup_channel(ch_name, orderer)
+
     def setup_channel(self, ch_name, orderer_name=None):
         ch = self.channel(ch_name)
         if orderer_name is None:
@@ -126,10 +127,16 @@ class Network:
         for ch_name in cc.Channels:
             self._define_chaincode_(cc, ch_name, orderer_name)
 
-    def _define_chaincode_(self, cc, ch_name, orderer_name=None):
+    def _define_chaincode_(self, cc, ch_name, package_id, orderer_name=None):
         ch = self.channel(ch_name)
         if orderer_name is None:
             orderer_name = self.sys_channel.Ords[0].FullName
+        endorsers = []
+        for ch_org in ch.Orgs:
+            endorser = ch_org.default_endorser()
+            self.chaincode_approve(ch_name, cc.Name, endorser, orderer_name, package_id)
+            endorsers.append(endorser)
+        self.chaincode_commit(ch_name, cc.Name, orderer_name, *endorsers)
 
     def channel_create(self, ch_name, orderer_name):
         ch = self.channel(ch_name)
@@ -169,10 +176,10 @@ class Network:
         cc = self.chaincode(cc_name)
         cc.check_commit_readiness(ch, peer_name)
 
-    def chaincode_commit(self, ch_name, cc_name, peer_name, orderer_name, *endorser_names):
+    def chaincode_commit(self, ch_name, cc_name, orderer_name, *endorser_names):
         ch = self.channel(ch_name)
         cc = self.chaincode(cc_name)
-        cc.commit(ch, peer_name, orderer_name, endorser_names)
+        cc.commit(ch, orderer_name, endorser_names)
 
     def chaincode_query_committed(self, ch_name, cc_name, peer_name):
         ch = self.channel(ch_name)

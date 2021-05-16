@@ -83,6 +83,9 @@ class Organization(dict):
     def admin(self):
         return self.msp_support.msp_holder.admin_msp_holder()
 
+    def default_endorser(self):
+        return self.PeerNodes.values()[0]
+
 
 def config_organizations(raw_conf, target_dir):
     return {org["Name"]: Organization(target_dir, **org) for org in raw_conf}
