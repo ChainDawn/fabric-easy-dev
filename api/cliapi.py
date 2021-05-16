@@ -68,7 +68,7 @@ class CliApiSupport(api.ApiSupport, ABC):
     def peer(self, peer):
         return CliPeerApi(self, peer)
 
-    def __execute_api__(self, args, orderer=None, envs=None):
+    def __execute_api__(self, args, orderer=None, envs=None, capture_output=False):
         if orderer is not None:
             common_orderer_args = [
                 "--orderer", orderer.deploy_handler.Address,
@@ -79,9 +79,9 @@ class CliApiSupport(api.ApiSupport, ABC):
         sub_env = {"FABRIC_CFG_PATH": self.signer_dir}
         if envs is not None:
             sub_env = {**envs, **sub_env}
-        return subprocess.run([self.Peer, *args], env=sub_env)
+        return subprocess.run([self.Peer, *args], env=sub_env, capture_output=capture_output)
 
-    def __execute_api_join_env__(self, args, orderer=None, envs=None):
+    def __execute_api_join_env__(self, args, orderer=None, envs=None, capture_output=False):
         if orderer is not None:
             common_orderer_args = [
                 "--orderer", orderer.deploy_handler.Address,
@@ -92,7 +92,7 @@ class CliApiSupport(api.ApiSupport, ABC):
         os.putenv("FABRIC_CFG_PATH", self.signer_dir)
         for e_key in envs:
             os.putenv(e_key, envs[e_key])
-        return subprocess.run([self.Peer, *args])
+        return subprocess.run([self.Peer, *args], capture_output=capture_output)
 
 
 class CliChannelApi(api.ChannelApi, ABC):
@@ -210,22 +210,40 @@ class CliPeerApi(api.PeerApi, ABC):
         self.peer = peer
 
     def __execute__(self, args):
-        return self.api.__execute_api__(args, envs={"CORE_PEER_ADDRESS": self.peer.deploy_handler.Address})
+        return self.api.__execute_api__(args, envs={"CORE_PEER_ADDRESS": self.peer.deploy_handler.Address}, capture_output=True)
 
     def __execute_join_env__(self, args):
-        return self.api.__execute_api_join_env__(args, envs={"CORE_PEER_ADDRESS": self.peer.deploy_handler.Address})
+        return self.api.__execute_api_join_env__(args, envs={"CORE_PEER_ADDRESS": self.peer.deploy_handler.Address}, capture_output=True)
 
     def list_channels(self):
-        self.__execute__([
+        result = self.__execute__([
             "channel", "list"
         ])
+        print(str(result.stdout, encoding='utf-8'))
 
     def list_installed_chaincodes(self):
-        self.__execute__([
+        result = self.__execute__([
             "lifecycle", "chaincode", "queryinstalled"
         ])
+        print(str(result.stdout, encoding='utf-8'))
+
+    def query_chaincode_package_id(self, cc_name, cc_version):
+        result = self.__execute__([
+            "lifecycle", "chaincode", "queryinstalled"
+        ])
+        infos = str(result.stdout, encoding='utf-8').split('\n')
+        for info in infos:
+            if not info.startswith("Package ID: "):
+                continue
+            if info.__contains__("%s.%s" % (cc_name, cc_version)):
+                return info.split(',')[0].split("Package ID: ")[1]
+
+    def chaincode_is_installed(self, cc_name, cc_version):
+        return self.query_chaincode_package_id(cc_name, cc_version) is not None
 
     def install_chaincode(self, chaincode):
+        if self.chaincode_is_installed(chaincode.Name, chaincode.Version):
+            return None
         cc_pack = self.package_chaincode(chaincode)
         self.__execute__(["lifecycle", "chaincode", "install", cc_pack])
 

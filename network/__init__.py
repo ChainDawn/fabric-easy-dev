@@ -159,7 +159,9 @@ class Network:
     def chaincode_install(self, peer_name, cc_name):
         peer = find_node(self.orgs_map, peer_name)
         support = api_support.cli_api_support(peer.Org.admin(), self.api_cache_dir)
-        support.peer(peer).install_chaincode(self.chaincode(cc_name))
+        cc = self.chaincode(cc_name)
+        if support.peer(peer).install_chaincode(cc) is None:
+            print("Chaincode: %s.%s has already on node: %s" % (cc.Name, cc.Version, peer_name))
 
     def chaincode_approve(self, ch_name, cc_name, peer_name, orderer_name, package_id):
         ch = self.channel(ch_name)
