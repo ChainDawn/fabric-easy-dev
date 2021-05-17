@@ -39,7 +39,7 @@ class UserChaincode(dict):
     def check_commit_readiness(self, ch, peer_name):
         self.__cc_lc_api__(ch, peer_name).check_commit_readiness(ch.Name)
 
-    def commit(self, ch, orderer_name, *endorser_names):
+    def commit(self, ch, orderer_name, endorser_names):
         if len(endorser_names) == 0:
             raise KeyError("Endorsers is empty")
         endosers = []

@@ -122,18 +122,25 @@ class Network:
             for peer in org.PeerNodes.values():
                 ch.join(orderer_name, peer.FullName)
 
+    def setup_chaincodes(self):
+        orderer = self.sys_channel.Ords[0].FullName
+        for cc_name in self.chaincodes:
+            self.setup_chaincode(cc_name, orderer)
+
     def setup_chaincode(self, cc_name, orderer_name=None):
         cc = self.chaincode(cc_name)
         for ch_name in cc.Channels:
             self._define_chaincode_(cc, ch_name, orderer_name)
 
-    def _define_chaincode_(self, cc, ch_name, package_id, orderer_name=None):
+    def _define_chaincode_(self, cc, ch_name, orderer_name=None):
         ch = self.channel(ch_name)
         if orderer_name is None:
             orderer_name = self.sys_channel.Ords[0].FullName
         endorsers = []
-        for ch_org in ch.Orgs:
-            endorser = ch_org.default_endorser()
+        for ch_org in ch.Orgs.values():
+            ch_org.tree_walk_peers(lambda peer: self.chaincode_install(peer.FullName, cc.Name))
+            endorser = ch_org.default_endorser().FullName
+            package_id = self.chaincode_package_id(endorser, cc.Name, cc.Version)
             self.chaincode_approve(ch_name, cc.Name, endorser, orderer_name, package_id)
             endorsers.append(endorser)
         self.chaincode_commit(ch_name, cc.Name, orderer_name, *endorsers)
@@ -155,6 +162,11 @@ class Network:
         peer = find_node(self.orgs_map, peer_name)
         support = api_support.cli_api_support(peer.Org.admin(), self.api_cache_dir)
         support.peer(peer).list_installed_chaincodes()
+
+    def chaincode_package_id(self, peer_name, cc_name, cc_version):
+        peer = find_node(self.orgs_map, peer_name)
+        support = api_support.cli_api_support(peer.Org.admin(), self.api_cache_dir)
+        return support.peer(peer).query_chaincode_package_id(cc_name, cc_version)
 
     def chaincode_install(self, peer_name, cc_name):
         peer = find_node(self.orgs_map, peer_name)

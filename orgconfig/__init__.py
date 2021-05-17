@@ -84,7 +84,12 @@ class Organization(dict):
         return self.msp_support.msp_holder.admin_msp_holder()
 
     def default_endorser(self):
-        return self.PeerNodes.values()[0]
+        for peer in self.PeerNodes.values():
+            return peer
+
+    def tree_walk_peers(self, invoke_func):
+        for peer in self.PeerNodes.values():
+            invoke_func(peer)
 
 
 def config_organizations(raw_conf, target_dir):
