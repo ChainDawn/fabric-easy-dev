@@ -86,6 +86,7 @@ class Network:
         self.sys_channel.boot()
         time.sleep(15)
         self.setup_channels()
+        self.setup_chaincodes()
 
     def down(self):
         self.clear()
