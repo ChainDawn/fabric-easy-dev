@@ -65,6 +65,7 @@ class UserChaincode(dict):
         cc_api.query(params)
 
     def invoke(self, ch, orderer_name, *endorser_names, params):
+        print(endorser_names)
         orderer = ch.__get_node__(orderer_name)
         endosers = []
         for e_name in endorser_names:
