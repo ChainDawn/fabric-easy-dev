@@ -145,6 +145,9 @@ class Network:
             self.chaincode_approve(ch_name, cc.Name, endorser, orderer_name, package_id)
             endorsers.append(endorser)
         self.chaincode_commit(ch_name, cc.Name, orderer_name, *endorsers)
+        self.chaincode_invoke(ch_name, cc.Name, '{"function":"InitLedger","Args":[]}', orderer_name, *endorsers)
+        for endorser in endorsers:
+            self.chaincode_query(ch_name, cc.Name, '{"Args":["GetAllAssets"]}', endorser)
 
     def channel_create(self, ch_name, orderer_name):
         ch = self.channel(ch_name)
@@ -204,7 +207,7 @@ class Network:
     def chaincode_invoke(self, ch_name, cc_name, params, orderer_name, *endorser_names):
         ch = self.channel(ch_name)
         cc = self.chaincode(cc_name)
-        cc.invoke(ch, orderer_name, endorser_names, params)
+        cc.invoke(ch, orderer_name, *endorser_names, params)
 
     def chaincode_query(self, ch_name, cc_name, params, peer_name):
         ch = self.channel(ch_name)
