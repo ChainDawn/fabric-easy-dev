@@ -205,9 +205,10 @@ class Network:
         cc.query_committed(ch, peer_name)
 
     def chaincode_invoke(self, ch_name, cc_name, params, orderer_name, *endorser_names):
+        print(endorser_names)
         ch = self.channel(ch_name)
         cc = self.chaincode(cc_name)
-        cc.invoke(ch, orderer_name, *endorser_names, params)
+        cc.invoke(ch, orderer_name, endorser_names, params)
 
     def chaincode_query(self, ch_name, cc_name, params, peer_name):
         ch = self.channel(ch_name)
