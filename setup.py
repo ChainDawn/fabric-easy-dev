@@ -19,7 +19,7 @@
 import os
 import subprocess
 
-from env import PLATFORM, FABRIC_VERSION, CACHE_DIR, FABRIC_BIN_DIR
+from env import PLATFORM, FABRIC_VERSION, CACHE_DIR, FABRIC_DIR
 from utils.fileutil import mkdir_if_need
 
 
@@ -34,17 +34,18 @@ def wget(source_url, cache_dir=CACHE_DIR):
     return None
 
 
-def download_fabric_release_binaries(cache_dir=CACHE_DIR, target_dir=FABRIC_BIN_DIR):
+def download_fabric_release_binaries(cache_dir=CACHE_DIR, target_dir=FABRIC_DIR):
     arch = PLATFORM + "-amd64"
     source_file = "hyperledger-fabric-%s-%s.tar.gz" % (arch, FABRIC_VERSION)
-    download_url = "https://github.com/hyperledger/fabric/releases/download/v%s/%s" % (FABRIC_VERSION, source_file)
-
-    binaries_tar_file = wget(download_url, cache_dir)
-    if binaries_tar_file is None:
-        print("Fabric binaries download failed: %s" % download_url)
+    cache_file = os.path.join(cache_dir, source_file)
+    if not os.path.exists(cache_file):
+        download_url = "https://github.com/hyperledger/fabric/releases/download/v%s/%s" % (FABRIC_VERSION, source_file)
+        cache_file = wget(download_url, cache_dir)
+        if not os.path.exists(cache_file):
+            print("Fabric binaries download failed: %s" % download_url)
 
     mkdir_if_need(target_dir)
-    subprocess.call(["tar", "-zxvf", binaries_tar_file, "-C", target_dir])
+    subprocess.call(["tar", "-zxvf", cache_file, "-C", target_dir])
 
 
 def setup():
