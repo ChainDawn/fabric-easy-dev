@@ -245,7 +245,7 @@ class CliPeerApi(api.PeerApi, ABC):
         if self.chaincode_is_installed(chaincode.Name, chaincode.Version):
             return None
         cc_pack = self.package_chaincode(chaincode)
-        self.__execute__(["lifecycle", "chaincode", "install", cc_pack])
+        return self.__execute__(["lifecycle", "chaincode", "install", cc_pack])
 
     def package_chaincode(self, cc):
         label = "%s.%s" % (cc.Name, cc.Version)
