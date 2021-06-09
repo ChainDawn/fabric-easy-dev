@@ -28,7 +28,7 @@ git submodule init & git submodule update
 
 ```shell
 cd $fabric-easy-dev
-。/setup.sh
+./setup.sh
 ```
 
 ### 使用测试项目
