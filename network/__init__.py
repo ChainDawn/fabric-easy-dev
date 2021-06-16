@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 import os
+import subprocess
+import sys
 import time
 import yaml
 
@@ -124,6 +126,12 @@ class Network:
                 ch.join(orderer_name, peer.FullName)
 
     def setup_chaincodes(self):
+        # check is docker running?
+        if os.system("docker ps > /dev/null 2>&1") != 0:
+            print("检查到您的 docker 没有在运行")
+            print("!!运行 chaincode 需要用到 docker 环境.")
+            print("!!您可以在启动 docker 之后执行 'python example.py setup_chaincodes' 继续使用 chaincode.")
+            sys.exit(1)
         orderer = self.sys_channel.Ords[0].FullName
         for cc_name in self.chaincodes:
             self.setup_chaincode(cc_name, orderer)
